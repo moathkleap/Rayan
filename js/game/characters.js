@@ -234,51 +234,75 @@ window.RN = window.RN || {};
     ctx.save();
     ctx.translate(ox, oy);
     ctx.rotate(ang * 0.6);
-    const ax = ang > 0 ? 2.6 : -0.8; // موضع الكاحل
-    // ساق مدببة: فخذ أعرض ينحدر لكاحل أنحف مع بطة خفيفة
-    ctx.fillStyle = front ? skinGrad(ctx, -3, 0, 3, 16) : SKIN_SHADE;
+    const ax = ang > 0 ? 2.2 : -0.6; // موضع الكاحل
+    // ساق انسيابية: فخذ أعرض ينساب لكاحل أنحف (بلا زوايا)
+    ctx.fillStyle = front ? skinGrad(ctx, -3, 0, 3, 15) : SKIN_SHADE;
     ctx.beginPath();
-    ctx.moveTo(-3.4, -1);
-    ctx.quadraticCurveTo(-3.9, 6.5, ax - 2.1, 12.5);
-    ctx.lineTo(ax - 2.1, 15.5);
-    ctx.lineTo(ax + 2.1, 15.5);
-    ctx.lineTo(ax + 2.1, 12.5);
-    ctx.quadraticCurveTo(4.2, 6.5, 3.4, -1);
+    ctx.moveTo(-3.1, -1.5);
+    ctx.quadraticCurveTo(-3.5, 6, ax - 1.9, 12);
+    ctx.quadraticCurveTo(ax - 2.0, 14.6, ax, 14.8);
+    ctx.quadraticCurveTo(ax + 2.0, 14.6, ax + 1.9, 12);
+    ctx.quadraticCurveTo(3.7, 6, 3.1, -1.5);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = 'rgba(74,44,26,0.35)'; ctx.lineWidth = 0.8;
+    ctx.strokeStyle = 'rgba(74,44,26,0.32)'; ctx.lineWidth = 0.8;
     ctx.stroke();
-    // ركبة (لمسة ظل + لمعة)
-    ctx.fillStyle = U.alpha(SKIN_DEEP, 0.28);
-    ctx.beginPath(); ctx.ellipse((ax) * 0.5 + 0.4, 7.5, 1.9, 1.1, 0, 0, 7); ctx.fill();
-    ctx.fillStyle = 'rgba(255,225,190,0.5)';
-    ctx.beginPath(); ctx.ellipse((ax) * 0.5 - 1, 5.5, 1, 1.6, 0.2, 0, 7); ctx.fill();
-    // جورب قصير بحافة مطوية
-    ctx.fillStyle = '#f6f6f2';
-    U.roundRect(ctx, ax - 2.4, 12.2, 4.8, 3.6, 1.6); ctx.fill();
-    ctx.fillStyle = '#e2e2da';
-    ctx.fillRect(ax - 2.4, 13.4, 4.8, 0.9);
-    // حذاء رياضي
+    // ثنية الركبة: خط رقيق فقط
+    ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.45); ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(ax * 0.4 - 1.2, 7.6);
+    ctx.quadraticCurveTo(ax * 0.4 + 0.2, 8.3, ax * 0.4 + 1.4, 7.6);
+    ctx.stroke();
+    // جورب قصير يلتف حول الكاحل ويلتقي بالحذاء
+    ctx.fillStyle = '#f8f8f4';
+    U.roundRect(ctx, ax - 2.35, 12.3, 4.7, 3.6, 1.9); ctx.fill();
+    ctx.strokeStyle = 'rgba(74,44,26,0.22)'; ctx.lineWidth = 0.6;
+    U.roundRect(ctx, ax - 2.35, 12.3, 4.7, 3.6, 1.9); ctx.stroke();
+    ctx.strokeStyle = 'rgba(150,150,160,0.55)'; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.moveTo(ax - 1.8, 13.5); ctx.lineTo(ax + 1.8, 13.5); ctx.stroke();
+    // حذاء رياضي (يلتقم الكاحل)
     ctx.save();
-    ctx.translate(ang > 0 ? 3 : -1, 17);
+    ctx.translate(ax, 17);
     const shg = ctx.createLinearGradient(0, -3.5, 0, 3);
     shg.addColorStop(0, U.shade(o.shoes, 0.22));
     shg.addColorStop(0.6, o.shoes);
     shg.addColorStop(1, U.shade(o.shoes, -0.15));
     ctx.fillStyle = shg;
-    U.roundRect(ctx, -4.2, -3.6, 12, 6.6, 3.1); ctx.fill();
-    ctx.strokeStyle = LINE; ctx.lineWidth = 0.9;
-    U.roundRect(ctx, -4.2, -3.6, 12, 6.6, 3.1); ctx.stroke();
-    // نعل مزدوج
+    ctx.beginPath();
+    ctx.moveTo(-3.9, -2.2);
+    ctx.quadraticCurveTo(-4.3, 1.2, -3.2, 2.4);   // كعب
+    ctx.lineTo(5.2, 2.4);
+    ctx.quadraticCurveTo(7.6, 2.2, 7.4, 0.4);     // مقدمة مستديرة
+    ctx.quadraticCurveTo(7.1, -1.6, 4.6, -2.0);
+    ctx.quadraticCurveTo(1.6, -3.7, -1.2, -3.3);  // لسان الحذاء
+    ctx.quadraticCurveTo(-3.3, -3.2, -3.9, -2.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = LINE; ctx.lineWidth = 0.85;
+    ctx.stroke();
+    // نعل أبيض مزدوج
     ctx.fillStyle = '#ffffff';
-    U.roundRect(ctx, -4.2, 0.9, 12, 2.5, 1.2); ctx.fill();
-    ctx.fillStyle = 'rgba(140,150,170,0.6)';
-    ctx.fillRect(-4.2, 2.6, 12, 0.8);
+    ctx.beginPath();
+    ctx.moveTo(-4.1, 2.2);
+    ctx.quadraticCurveTo(-4.3, 4.3, -2.6, 4.4);
+    ctx.lineTo(5.6, 4.4);
+    ctx.quadraticCurveTo(7.8, 4.2, 7.5, 2.4);
+    ctx.quadraticCurveTo(7.4, 1.7, 6.6, 2.0);
+    ctx.lineTo(-3.4, 2.0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(74,44,26,0.3)'; ctx.lineWidth = 0.6;
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(140,150,170,0.5)';
+    ctx.fillRect(-3.4, 3.4, 10.4, 0.7);
     // مقدمة مطاطية + أربطة
-    ctx.fillStyle = 'rgba(255,255,255,0.85)';
-    ctx.beginPath(); ctx.arc(6.4, 0, 2.6, -1.4, 1.4); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.9)'; ctx.lineWidth = 0.9;
-    ctx.beginPath(); ctx.moveTo(0.2, -2.2); ctx.lineTo(3.4, -1.2); ctx.moveTo(0.2, -0.7); ctx.lineTo(3.4, 0.3); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath(); ctx.ellipse(5.7, 0.4, 1.9, 1.7, 0.15, -1.8, 1.5); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 0.85;
+    ctx.beginPath();
+    ctx.moveTo(-0.6, -1.9); ctx.lineTo(2.6, -1.1);
+    ctx.moveTo(-0.8, -0.5); ctx.lineTo(2.5, 0.3);
+    ctx.stroke();
     ctx.restore();
     ctx.restore();
   }
@@ -300,36 +324,30 @@ window.RN = window.RN || {};
     // ساعد ويد
     ctx.strokeStyle = front ? skinGrad(ctx, -2, 7, 2, 16) : SKIN_SHADE;
     ctx.lineWidth = 4.1; ctx.beginPath(); ctx.moveTo(0, 7); ctx.lineTo(0, 13.6); ctx.stroke();
-    // كف بأصابع (قبضة شبه مفتوحة)
-    const hg = ctx.createRadialGradient(-0.8, 14.6, 0.5, 0, 15.3, 3.2);
+    // كف كرتونية نظيفة: قفاز بيضاوي بإبهام مدمج وخطي أصابع
+    ctx.save();
+    ctx.translate(0, 14.4);
+    const thx = front ? -1.9 : 1.9; // الإبهام نحو الجسم
+    const hg = ctx.createRadialGradient(-0.7, -0.8, 0.4, 0, 0.3, 3.4);
     hg.addColorStop(0, front ? SKIN_HI : SKIN);
     hg.addColorStop(1, front ? SKIN : SKIN_SHADE);
+    // الإبهام أولًا (يندمج تحت الكف)
     ctx.fillStyle = hg;
-    // راحة اليد
-    ctx.beginPath();
-    ctx.moveTo(-2.5, 13.4);
-    ctx.quadraticCurveTo(-2.9, 16.2, -1.7, 17.3);
-    // ثلاثة أصابع (نتوءات) عند الأسفل
-    ctx.arc(-1.1, 17.15, 0.85, Math.PI * 0.9, Math.PI * 0.1, true);
-    ctx.arc(0.6, 17.35, 0.9, Math.PI * 0.95, Math.PI * 0.05, true);
-    ctx.arc(2.2, 17.0, 0.85, Math.PI, 0, true);
-    ctx.quadraticCurveTo(3.1, 15.3, 2.6, 13.5);
-    ctx.quadraticCurveTo(0, 12.4, -2.5, 13.4);
-    ctx.closePath();
-    ctx.fill();
+    ctx.beginPath(); ctx.ellipse(thx, -0.2, 1.0, 1.7, front ? -0.5 : 0.5, 0, 7); ctx.fill();
     ctx.strokeStyle = LINE; ctx.lineWidth = 0.7;
-    ctx.stroke();
-    // فواصل الأصابع
-    ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.6); ctx.lineWidth = 0.55;
+    ctx.beginPath(); ctx.ellipse(thx, -0.2, 1.0, 1.7, front ? -0.5 : 0.5, 0, 7); ctx.stroke();
+    // الكف
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.ellipse(0, 0.5, 2.45, 2.85, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = LINE; ctx.lineWidth = 0.75;
+    ctx.beginPath(); ctx.ellipse(0, 0.5, 2.45, 2.85, 0, 0, 7); ctx.stroke();
+    // خطا أصابع قصيران من الأسفل
+    ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.55); ctx.lineWidth = 0.55;
     ctx.beginPath();
-    ctx.moveTo(-0.3, 17.5); ctx.lineTo(-0.3, 15.9);
-    ctx.moveTo(1.4, 17.5); ctx.lineTo(1.4, 15.9);
+    ctx.moveTo(-0.75, 3.2); ctx.lineTo(-0.75, 1.7);
+    ctx.moveTo(0.75, 3.25); ctx.lineTo(0.75, 1.75);
     ctx.stroke();
-    // إبهام
-    ctx.fillStyle = front ? SKIN : SKIN_SHADE;
-    ctx.beginPath(); ctx.ellipse(front ? 2.7 : -2.7, 14.6, 0.9, 1.5, front ? 0.45 : -0.45, 0, 7); ctx.fill();
-    ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.4); ctx.lineWidth = 0.5;
-    ctx.beginPath(); ctx.ellipse(front ? 2.7 : -2.7, 14.6, 0.9, 1.5, front ? 0.45 : -0.45, 0, 7); ctx.stroke();
+    ctx.restore();
     // شفرة الطاقة
     if (front && p.armPose === 'swing') {
       ctx.globalCompositeOperation = 'screen';
@@ -1064,27 +1082,27 @@ window.RN = window.RN || {};
     hg.addColorStop(0, front ? NAYA_SKIN_HI : NAYA_SKIN);
     hg.addColorStop(1, front ? NAYA_SKIN : U.shade(NAYA_SKIN, -0.14));
     ctx.fillStyle = hg;
-    // كف صغير بأصابع
+    // كف صغيرة نظيفة بإبهام مدمج
+    ctx.save();
+    ctx.translate(0, 12.2);
+    const thx = front ? -1.5 : 1.5;
+    const hgn = ctx.createRadialGradient(-0.6, -0.6, 0.3, 0, 0.4, 2.7);
+    hgn.addColorStop(0, front ? NAYA_SKIN_HI : NAYA_SKIN);
+    hgn.addColorStop(1, front ? NAYA_SKIN : U.shade(NAYA_SKIN, -0.14));
+    ctx.fillStyle = hgn;
+    ctx.beginPath(); ctx.ellipse(thx, -0.2, 0.8, 1.35, front ? -0.5 : 0.5, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(70,42,26,0.3)'; ctx.lineWidth = 0.55;
+    ctx.beginPath(); ctx.ellipse(thx, -0.2, 0.8, 1.35, front ? -0.5 : 0.5, 0, 7); ctx.stroke();
+    ctx.fillStyle = hgn;
+    ctx.beginPath(); ctx.ellipse(0, 0.4, 1.95, 2.3, 0, 0, 7); ctx.fill();
+    ctx.strokeStyle = 'rgba(70,42,26,0.33)'; ctx.lineWidth = 0.6;
+    ctx.beginPath(); ctx.ellipse(0, 0.4, 1.95, 2.3, 0, 0, 7); ctx.stroke();
+    ctx.strokeStyle = 'rgba(190,140,95,0.5)'; ctx.lineWidth = 0.45;
     ctx.beginPath();
-    ctx.moveTo(-2.1, 11.3);
-    ctx.quadraticCurveTo(-2.5, 13.6, -1.5, 14.5);
-    ctx.arc(-0.9, 14.4, 0.7, Math.PI * 0.9, Math.PI * 0.1, true);
-    ctx.arc(0.5, 14.6, 0.75, Math.PI * 0.95, Math.PI * 0.05, true);
-    ctx.arc(1.8, 14.3, 0.7, Math.PI, 0, true);
-    ctx.quadraticCurveTo(2.6, 12.9, 2.2, 11.4);
-    ctx.quadraticCurveTo(0, 10.5, -2.1, 11.3);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(70,42,26,0.35)'; ctx.lineWidth = 0.6;
+    ctx.moveTo(-0.6, 2.5); ctx.lineTo(-0.6, 1.3);
+    ctx.moveTo(0.6, 2.55); ctx.lineTo(0.6, 1.35);
     ctx.stroke();
-    ctx.strokeStyle = 'rgba(190,140,95,0.55)'; ctx.lineWidth = 0.45;
-    ctx.beginPath();
-    ctx.moveTo(-0.2, 14.7); ctx.lineTo(-0.2, 13.4);
-    ctx.moveTo(1.1, 14.7); ctx.lineTo(1.1, 13.4);
-    ctx.stroke();
-    // إبهام
-    ctx.fillStyle = front ? NAYA_SKIN : U.shade(NAYA_SKIN, -0.1);
-    ctx.beginPath(); ctx.ellipse(front ? 2.3 : -2.3, 12.1, 0.7, 1.2, front ? 0.45 : -0.45, 0, 7); ctx.fill();
+    ctx.restore();
     // سوار خرز
     ctx.fillStyle = '#ffe08a';
     ctx.beginPath(); ctx.arc(-1.1, 9, 1.05, 0, 7); ctx.fill();
