@@ -34,7 +34,7 @@ window.RN = window.RN || {};
     },
 
     resize() {
-      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+      const dpr = Math.min(window.devicePixelRatio || 1, 4); // حدة كاملة حتى شاشات 4K
       const w = window.innerWidth, h = window.innerHeight;
       this.canvas.width = Math.round(w * dpr);
       this.canvas.height = Math.round(h * dpr);
@@ -121,7 +121,7 @@ window.RN = window.RN || {};
 
     // تحويل إحداثيات حدث لمس/فأرة إلى إحداثيات افتراضية
     toVirtual(clientX, clientY) {
-      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+      const dpr = Math.min(window.devicePixelRatio || 1, 4);
       return {
         x: (clientX * dpr - this.offsetX) / this.scale,
         y: (clientY * dpr - this.offsetY) / this.scale,
