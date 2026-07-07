@@ -66,6 +66,9 @@ window.RN = window.RN || {};
     ctx.closePath();
   };
 
+  // عزل نص بأرقام داخل اتجاه LTR (لمنع قلب "0 / 19" في واجهة عربية)
+  U.ltr = (s) => '\u2066' + s + '\u2069';
+
   U.formatTime = function (sec) {
     const m = Math.floor(sec / 60), s = Math.floor(sec % 60);
     return m + ':' + String(s).padStart(2, '0');

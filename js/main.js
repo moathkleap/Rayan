@@ -27,11 +27,18 @@
     window.addEventListener('pointerdown', unlockAudio, { once: true });
     window.addEventListener('keydown', unlockAudio, { once: true });
 
-    // نقرات الواجهة
+    // نقرات الواجهة + نبضة ارتداد للأزرار المضغوطة
     canvas.addEventListener('pointerdown', (e) => {
       const v = RN.Engine.toVirtual(e.clientX, e.clientY);
       const scene = RN.Engine.scene;
-      if (scene && scene.onClick) scene.onClick(v.x, v.y);
+      if (!scene) return;
+      for (const list of [scene.buttons, scene._pauseButtons, scene._resultButtons, scene._goButtons]) {
+        if (!list) continue;
+        for (const b of list) {
+          if (!b.invisible && RN.UI.hit(b, v.x, v.y)) RN.UI.press(b);
+        }
+      }
+      if (scene.onClick) scene.onClick(v.x, v.y);
     });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 

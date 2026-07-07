@@ -409,7 +409,7 @@ window.RN = window.RN || {};
       // الطقس (فضاء الشاشة)
       this.weather.render(ctx);
 
-      // حجاب الظلام (العالم المظلم)
+      // حجاب الظلام (العالم المظلم) + هالة ضوء حول ريان
       if (this.darkVeil > 0) {
         const px = this.player.x + this.player.w / 2 - this.camX;
         const py = this.player.y + this.player.h / 2 - this.camY;
@@ -418,7 +418,40 @@ window.RN = window.RN || {};
         rg.addColorStop(1, `rgba(6,4,16,${this.darkVeil + 0.35})`);
         ctx.fillStyle = rg;
         ctx.fillRect(0, 0, RN.VW, RN.VH);
+        // ضوء دافئ حول اللاعب
+        ctx.globalCompositeOperation = 'screen';
+        const lg = ctx.createRadialGradient(px, py, 8, px, py, 130);
+        lg.addColorStop(0, 'rgba(255,210,130,0.16)');
+        lg.addColorStop(1, 'rgba(255,210,130,0)');
+        ctx.fillStyle = lg;
+        ctx.beginPath(); ctx.arc(px, py, 130, 0, 7); ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
       }
+
+      /* ---- تدريج لوني سينمائي (Cinematic Grade) ---- */
+      // طبقة تباين دافئ/بارد حسب العالم
+      ctx.globalCompositeOperation = 'overlay';
+      const GRADES = [
+        ['rgba(255,214,140,0.10)', 'rgba(30,90,60,0.12)'],
+        ['rgba(255,190,90,0.16)', 'rgba(150,80,30,0.10)'],
+        ['rgba(190,225,255,0.14)', 'rgba(40,80,150,0.12)'],
+        ['rgba(255,120,50,0.16)', 'rgba(90,20,20,0.16)'],
+        ['rgba(220,240,255,0.12)', 'rgba(50,90,180,0.10)'],
+        ['rgba(150,90,255,0.12)', 'rgba(20,10,50,0.2)'],
+      ];
+      const gr = GRADES[this.wi];
+      const cg = ctx.createLinearGradient(0, 0, 0, RN.VH);
+      cg.addColorStop(0, gr[0]);
+      cg.addColorStop(1, gr[1]);
+      ctx.fillStyle = cg;
+      ctx.fillRect(0, 0, RN.VW, RN.VH);
+      ctx.globalCompositeOperation = 'source-over';
+      // Vignette ناعمة
+      const vg = ctx.createRadialGradient(RN.VW / 2, RN.VH / 2, RN.VH * 0.52, RN.VW / 2, RN.VH / 2, RN.VH * 1.08);
+      vg.addColorStop(0, 'rgba(0,0,20,0)');
+      vg.addColorStop(1, `rgba(0,0,20,${this.wi === 5 ? 0.42 : 0.26})`);
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, RN.VW, RN.VH);
 
       RN.HUD.render(ctx, this);
 
@@ -523,9 +556,9 @@ window.RN = window.RN || {};
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       const rows = [
         [RN.t('time'), U.formatTime(this.time)],
-        [RN.t('crystals'), `${this.crystals} / ${this.level.crystalTotal}`],
+        [RN.t('crystals'), U.ltr(`${this.crystals} / ${this.level.crystalTotal}`)],
         [RN.t('damage'), String(this.player.hitsTaken)],
-        [RN.t('secretsFound'), `${this.secretsFound} / ${this.level.secretTotal}`],
+        [RN.t('secretsFound'), U.ltr(`${this.secretsFound} / ${this.level.secretTotal}`)],
       ];
       let ry = 205;
       for (const [k, v] of rows) {

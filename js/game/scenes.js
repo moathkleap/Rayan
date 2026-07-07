@@ -15,6 +15,20 @@ window.RN = window.RN || {};
       this.bg = new RN.Background(0, 42);
       this.weather = new RN.Weather('leaves');
       this.t = 0;
+      // فراشات حية
+      const rng = U.rng(77);
+      this.butterflies = [];
+      for (let i = 0; i < 4; i++) {
+        this.butterflies.push({
+          x: rng() * RN.VW, y: 200 + rng() * 240, ph: rng() * 7,
+          c: U.pick(['#ff9ac0', '#9ad4ff', '#ffd970', '#c9a4ff']),
+        });
+      }
+      // عشب أمامي
+      this.grass = [];
+      for (let i = 0; i < 70; i++) {
+        this.grass.push({ x: (i / 70) * RN.VW + rng() * 12, h: 10 + rng() * 16, ph: rng() * 7, tone: rng() });
+      }
       RN.Audio.setMusic(6, 'explore');
     }
     update(dt, rawDt) {
@@ -24,35 +38,138 @@ window.RN = window.RN || {};
     }
     render(ctx) {
       this.bg.render(ctx, this.t * 30, 0, this.t);
-      // أرضية
-      ctx.fillStyle = '#7a5230';
-      ctx.fillRect(0, RN.VH - 70, RN.VW, 70);
-      ctx.fillStyle = '#58b24d';
-      ctx.fillRect(0, RN.VH - 70, RN.VW, 12);
+      // أرضية بخامة
+      const tex = RN.Textures.get(0);
+      for (let x = 0; x < RN.VW + 32; x += 32) {
+        ctx.drawImage(tex.top[Math.floor((x / 32) % 4)], x, RN.VH - 70, 32, 32);
+        ctx.drawImage(tex.ground[Math.floor((x / 32 + 2) % 4)], x, RN.VH - 38, 32, 38);
+      }
+
+      // الشخصيتان — ينظر كل منهما للآخر
+      RN.Chars.drawRayan(ctx, RN.VW / 2 - 190, RN.VH - 74, 'idle', this.t, 1,
+        RN.C.OUTFITS[RN.Save.data.outfit || 'explorer'], { scale: 1.55, lookX: 1 });
+      RN.Chars.drawNaya(ctx, RN.VW / 2 + 190, RN.VH - 74, 'wave', this.t, -1, 'princess', 1.5, 0.9);
+
+      // فراشات ترفرف
+      for (const b of this.butterflies) {
+        const bx = b.x + Math.sin(this.t * 0.7 + b.ph) * 90;
+        const by = b.y + Math.sin(this.t * 1.1 + b.ph * 2) * 40;
+        const flap = Math.sin(this.t * 14 + b.ph) * 0.9;
+        ctx.save();
+        ctx.translate(bx, by);
+        ctx.rotate(Math.sin(this.t + b.ph) * 0.2);
+        ctx.fillStyle = b.c;
+        for (const s of [-1, 1]) {
+          ctx.save();
+          ctx.scale(s, 1);
+          ctx.rotate(flap * 0.5);
+          ctx.beginPath();
+          ctx.ellipse(4, -2, 4.5, 3, 0.5, 0, 7);
+          ctx.ellipse(3.5, 2, 3.4, 2.3, -0.4, 0, 7);
+          ctx.fill();
+          ctx.restore();
+        }
+        ctx.fillStyle = '#3a2a1a';
+        ctx.fillRect(-0.8, -3, 1.6, 7);
+        ctx.restore();
+      }
+
+      // أوراق الطقس
       this.weather.render(ctx);
 
-      // الشخصيتان
-      RN.Chars.drawRayan(ctx, RN.VW / 2 - 190, RN.VH - 80, 'idle', this.t, 1, RN.C.OUTFITS[RN.Save.data.outfit || 'explorer'], {});
-      RN.Chars.drawNaya(ctx, RN.VW / 2 + 190, RN.VH - 80, 'wave', this.t, -1, 'princess', 1.2);
+      // عشب أمامي متمايل
+      for (const g of this.grass) {
+        const sway = Math.sin(this.t * 2 + g.ph + g.x * 0.02) * 3.5;
+        ctx.strokeStyle = g.tone > 0.6 ? '#63bd58' : g.tone > 0.3 ? '#4da045' : '#3c8a3e';
+        ctx.lineWidth = 2.2; ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(g.x, RN.VH - 64);
+        ctx.quadraticCurveTo(g.x + sway * 0.4, RN.VH - 64 - g.h * 0.6, g.x + sway, RN.VH - 64 - g.h);
+        ctx.stroke();
+      }
 
-      // الشعار
+      /* ---- الشعار: كتلة ثلاثية الأبعاد بلمعان ودخول متحرك ---- */
+      // دخول: نزول مع ارتداد في أول ثانية ونصف
+      const intro = Math.min(1, this.t / 1.2);
+      const bounce = intro < 1 ? Math.pow(intro, 2) * (3 - 2 * intro) : 1;
+      const dropY = U.lerp(-160, 0, bounce) + (intro >= 1 ? Math.sin(this.t * 1.4) * 5 : 0);
+      const popScale = intro < 1 ? 0.7 + bounce * 0.3 : 1;
       ctx.save();
-      ctx.translate(RN.VW / 2, 105 + Math.sin(this.t * 1.4) * 5);
+      ctx.translate(RN.VW / 2, 105 + dropY);
+      ctx.scale(popScale, popScale);
+      ctx.rotate(Math.sin(this.t * 0.7) * 0.012);
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.font = `bold ${RN.UI.fontPx(58)}px sans-serif`;
-      ctx.lineWidth = 10; ctx.lineJoin = 'round';
-      ctx.strokeStyle = '#1e3a5c';
-      ctx.strokeText(RN.t('title'), 0, 0);
-      const grad = ctx.createLinearGradient(0, -30, 0, 30);
-      grad.addColorStop(0, '#ffe14a'); grad.addColorStop(1, '#ff9a2a');
+      const TITLE = RN.t('title');
+      ctx.font = `900 ${RN.UI.fontPx(62)}px sans-serif`;
+      // توهج خلفي
+      ctx.shadowColor = 'rgba(255,190,60,0.55)';
+      ctx.shadowBlur = 26;
+      // عمق ثلاثي الأبعاد: طبقات إزاحة
+      for (let d = 7; d >= 1; d--) {
+        ctx.fillStyle = U.mix('#5c2e08', '#8a4a12', d / 7);
+        ctx.fillText(TITLE, 0, d * 1.6);
+      }
+      ctx.shadowBlur = 0;
+      // الوجه الأمامي بتدرج ذهبي + حد
+      ctx.lineWidth = 8; ctx.lineJoin = 'round';
+      ctx.strokeStyle = '#4a2606';
+      ctx.strokeText(TITLE, 0, 0);
+      const grad = ctx.createLinearGradient(0, -32, 0, 32);
+      grad.addColorStop(0, '#fff6b0');
+      grad.addColorStop(0.4, '#ffdd4a');
+      grad.addColorStop(0.65, '#ffb02a');
+      grad.addColorStop(1, '#ff8a1e');
       ctx.fillStyle = grad;
-      ctx.fillText(RN.t('title'), 0, 0);
+      ctx.fillText(TITLE, 0, 0);
+      // لمعان يمسح الشعار كل بضع ثوانٍ
+      const shinePhase = (this.t % 4) / 4;
+      if (shinePhase < 0.3) {
+        ctx.save();
+        ctx.beginPath();
+        const sx = U.lerp(-220, 220, shinePhase / 0.3);
+        ctx.rect(sx - 26, -44, 52, 88);
+        ctx.clip();
+        ctx.fillStyle = 'rgba(255,255,255,0.75)';
+        ctx.fillText(TITLE, 0, 0);
+        ctx.restore();
+      }
+      // بريق نجمي
+      for (let i = 0; i < 2; i++) {
+        const sp = ((this.t * 0.5 + i * 0.5) % 1);
+        const sx = -150 + i * 260, sy = -22 + i * 30;
+        const ss = Math.sin(sp * Math.PI) * 6;
+        if (ss > 0.5) {
+          ctx.fillStyle = 'rgba(255,255,255,0.95)';
+          ctx.save();
+          ctx.translate(sx, sy);
+          ctx.rotate(sp * 2);
+          for (let k = 0; k < 4; k++) { ctx.rotate(Math.PI / 2); ctx.fillRect(-0.9, -ss, 1.8, ss * 2); }
+          ctx.restore();
+        }
+      }
+      // العنوان الفرعي
       ctx.font = `bold ${RN.UI.fontPx(19)}px sans-serif`;
-      ctx.fillStyle = '#ffffff';
-      ctx.strokeStyle = 'rgba(30,58,92,0.8)'; ctx.lineWidth = 5;
-      ctx.strokeText(RN.t('subtitle'), 0, 48);
-      ctx.fillText(RN.t('subtitle'), 0, 48);
+      ctx.strokeStyle = 'rgba(30,45,80,0.85)'; ctx.lineWidth = 5;
+      ctx.strokeText(RN.t('subtitle'), 0, 52);
+      const sg = ctx.createLinearGradient(0, 44, 0, 60);
+      sg.addColorStop(0, '#ffffff'); sg.addColorStop(1, '#bfe0ff');
+      ctx.fillStyle = sg;
+      ctx.fillText(RN.t('subtitle'), 0, 52);
       ctx.restore();
+
+      // تدرج سينمائي + Vignette
+      ctx.globalCompositeOperation = 'overlay';
+      const cg = ctx.createLinearGradient(0, 0, 0, RN.VH);
+      cg.addColorStop(0, 'rgba(255,200,120,0.10)');
+      cg.addColorStop(1, 'rgba(40,80,160,0.12)');
+      ctx.fillStyle = cg;
+      ctx.fillRect(0, 0, RN.VW, RN.VH);
+      ctx.globalCompositeOperation = 'source-over';
+      const vg = ctx.createRadialGradient(RN.VW / 2, RN.VH / 2, RN.VH * 0.5, RN.VW / 2, RN.VH / 2, RN.VH * 1.05);
+      vg.addColorStop(0, 'rgba(0,0,20,0)');
+      vg.addColorStop(1, 'rgba(0,0,20,0.32)');
+      ctx.fillStyle = vg;
+      ctx.fillRect(0, 0, RN.VW, RN.VH);
 
       // الأزرار
       const hasSave = RN.Save.listProfiles().some((p) => p);
@@ -136,7 +253,7 @@ window.RN = window.RN || {};
           ctx.font = `${RN.UI.fontPx(13)}px sans-serif`;
           let stars = 0; for (const k in p.stars) stars += p.stars[k];
           ctx.fillText(`${RN.t('worlds')[Math.min(5, p.world)]}`, cx, cy + 155);
-          ctx.fillText(`⭐ ${stars}   💎 ${p.crystals}`, cx, cy + 180);
+          ctx.fillText(U.ltr(`⭐ ${stars}   💎 ${p.crystals}`), cx, cy + 180);
           this.buttons.push({ x: cx - 75, y: cy + 200, w: 150, h: 38, label: RN.t('play'), primary: true, act: 'load', idx: i, fs: 15 });
           this.buttons.push({ x: cx - 75, y: cy + 242, w: 150, h: 22, label: this.confirmDelete === i ? RN.t('confirmOverwrite') : '🗑', act: 'del', idx: i, fs: 11 });
         } else {
@@ -258,7 +375,7 @@ window.RN = window.RN || {};
             for (let l = 0; l < 8; l++) ws += sd.stars[`${w}-${l}`] || 0;
             ctx.font = `${RN.UI.fontPx(13)}px sans-serif`;
             ctx.fillStyle = '#ffd700';
-            ctx.fillText(`⭐ ${ws} / 24`, cx, cy + 92);
+            ctx.fillText(U.ltr(`⭐ ${ws} / 24`), cx, cy + 92);
             this.buttons.push({ x: cx - 120, y: cy, w: 240, h: 112, label: '', act: 'world', idx: w, invisible: true });
           } else {
             ctx.fillStyle = 'rgba(255,255,255,0.5)';
@@ -657,7 +774,7 @@ window.RN = window.RN || {};
       ctx.fillRect(0, 0, RN.VW, RN.VH);
       const defs = RN.Achievements.DEFS;
       const unlockedCount = RN.Save.data.achievements.length;
-      RN.UI.panel(ctx, RN.VW / 2 - 350, 24, 700, 480, `🏆 ${RN.t('achievements')} — ${unlockedCount} / ${defs.length}`);
+      RN.UI.panel(ctx, RN.VW / 2 - 350, 24, 700, 480, `🏆 ${RN.t('achievements')} — ` + U.ltr(`${unlockedCount} / ${defs.length}`));
       const perPage = 8;
       const pages = Math.ceil(defs.length / perPage);
       this.page = U.clamp(this.page, 0, pages - 1);
@@ -669,7 +786,7 @@ window.RN = window.RN || {};
       ctx.fillStyle = '#ffffff';
       ctx.font = `${RN.UI.fontPx(14)}px sans-serif`;
       ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText(`${this.page + 1} / ${pages}`, RN.VW / 2, 480);
+      ctx.fillText(U.ltr(`${this.page + 1} / ${pages}`), RN.VW / 2, 480);
       for (let i = 0; i < perPage; i++) {
         const d = defs[this.page * perPage + i];
         if (!d) break;

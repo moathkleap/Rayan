@@ -1,5 +1,5 @@
 /* Rayan & Naya — Service Worker: تشغيل دون اتصال */
-const CACHE = 'rayan-naya-v1';
+const CACHE = 'rayan-naya-v2';
 const ASSETS = [
   './',
   './index.html',
@@ -15,6 +15,7 @@ const ASSETS = [
   './js/core/engine.js',
   './js/game/config.js',
   './js/game/physics.js',
+  './js/game/textures.js',
   './js/game/characters.js',
   './js/game/particles.js',
   './js/game/background.js',

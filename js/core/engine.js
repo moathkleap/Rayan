@@ -99,8 +99,9 @@ window.RN = window.RN || {};
         sy = (Math.random() - 0.5) * this.shake * this.scale;
       }
       ctx.setTransform(this.scale, 0, 0, this.scale, this.offsetX + sx, this.offsetY + sy);
-      // اتجاه أساس ثابت كي لا يقلب bidi الأرقام مثل "0 / 19" في مستند RTL
-      if (ctx.direction !== 'ltr') ctx.direction = 'ltr';
+      // اتجاه الأساس حسب اللغة (النصوص الرقمية تُعزل بـ U.ltr)
+      const dir = RN.I18N && RN.I18N.isRTL() ? 'rtl' : 'ltr';
+      if (ctx.direction !== dir) ctx.direction = dir;
       ctx.save();
       ctx.beginPath();
       ctx.rect(-2, -2, VW + 4, VH + 4);

@@ -206,7 +206,9 @@ window.RN = window.RN || {};
           this.coyote = 0;
           RN.Audio.sfx('jump');
           RN.Save.data.statsCounters.jumps++;
-          scene.particles.burst(this.x + this.w / 2, this.y + this.h, 5, { color: '#cccccc', speed: 60, size: 2.5, life: 0.3 });
+          // غبار + شرارات قفز
+          scene.particles.burst(this.x + this.w / 2, this.y + this.h, 5, { color: 'rgba(200,190,170,0.7)', speed: 60, size: 2.5, life: 0.3 });
+          scene.particles.burst(this.x + this.w / 2, this.y + this.h - 4, 5, { color: '#ffe08a', speed: 110, size: 1.8, life: 0.35, glow: true, shape: 'star', vr: 6 });
         } else if (this.wallDir !== 0 && this.has('wallJump')) {
           // قفزة جدارية
           this.vy = -P.jumpVel * 0.92;
@@ -434,6 +436,9 @@ window.RN = window.RN || {};
         shield: this.shield,
         invincible: this.powerups.invincible > 0,
         power2x: this.powerups.power2x > 0,
+        scale: 1.18,
+        lookX: 0.7,
+        lookY: this.vy < -100 ? -0.5 : this.vy > 200 ? 0.6 : 0,
       };
       const t = state === 'attack' ? (0.22 - this.attackT) : this.animT;
       // ظل ناعم

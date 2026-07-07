@@ -438,6 +438,7 @@ window.RN = window.RN || {};
 
     renderTiles(ctx, camX, camY, time) {
       const t = T(), w = this.world;
+      const tex = RN.Textures.get(this.wi);
       const x0 = Math.max(0, Math.floor(camX / 32) - 1);
       const x1 = Math.min(this.w - 1, Math.ceil((camX + RN.VW) / 32) + 1);
       const y0 = Math.max(0, Math.floor(camY / 32) - 1);
@@ -451,65 +452,67 @@ window.RN = window.RN || {};
           const px = tx * 32 - camX, py = ty * 32 - camY;
           const above = this.tileAt(tx, ty - 1);
           const hv = this._hash(tx, ty);
+          const variant = Math.floor(hv * 4) % 4;
           switch (id) {
             case t.SOLID: {
               const isTop = above !== t.SOLID && above !== t.ICE && above !== t.SAND;
-              ctx.fillStyle = U.shade(w.ground, (hv - 0.5) * 0.08);
-              ctx.fillRect(px, py, 32, 32);
-              if (isTop) {
-                ctx.fillStyle = w.groundTop;
-                ctx.fillRect(px, py, 32, 7);
-                ctx.fillStyle = U.shade(w.groundTop, -0.15);
-                ctx.fillRect(px, py + 7, 32, 2);
-                if (this.wi === 0 && hv > 0.55) { // عشب
-                  ctx.fillStyle = w.groundTop;
-                  ctx.fillRect(px + 4 + hv * 10, py - 4, 2, 4);
-                  ctx.fillRect(px + 14 + hv * 8, py - 5, 2, 5);
+              ctx.drawImage((isTop ? tex.top : tex.ground)[variant], px, py, 32, 32);
+              // إضاءة محيطة (AO): تعتيم الحواف المجاورة للفراغ
+              const leftAir = !RN.Physics.isSolid(this.tileAt(tx - 1, ty));
+              const rightAir = !RN.Physics.isSolid(this.tileAt(tx + 1, ty));
+              if (leftAir || rightAir) {
+                const ag = ctx.createLinearGradient(px, 0, px + 32, 0);
+                ag.addColorStop(0, leftAir ? 'rgba(0,0,15,0.22)' : 'rgba(0,0,15,0)');
+                ag.addColorStop(0.3, 'rgba(0,0,15,0)');
+                ag.addColorStop(0.7, 'rgba(0,0,15,0)');
+                ag.addColorStop(1, rightAir ? 'rgba(0,0,15,0.22)' : 'rgba(0,0,15,0)');
+                ctx.fillStyle = ag;
+                ctx.fillRect(px, py, 32, 32);
+              }
+              // عشب متمايل مع الريح فوق سطح الغابة/السماء
+              if (isTop && (this.wi === 0 || this.wi === 4) && hv > 0.35) {
+                const sway = Math.sin(time * 2.2 + tx * 1.3) * 2.5;
+                ctx.strokeStyle = U.shade(w.groundTop, hv > 0.7 ? 0.2 : -0.08);
+                ctx.lineWidth = 1.7; ctx.lineCap = 'round';
+                for (let b = 0; b < 3; b++) {
+                  const bx = px + 5 + b * 10 + hv * 6;
+                  const bh = 5 + ((hv * 7 + b) % 4);
+                  ctx.beginPath();
+                  ctx.moveTo(bx, py + 4);
+                  ctx.quadraticCurveTo(bx + sway * 0.5, py - bh * 0.5, bx + sway, py + 3 - bh);
+                  ctx.stroke();
                 }
-              } else if (hv > 0.8) {
-                ctx.fillStyle = U.shade(w.ground, -0.18);
-                ctx.fillRect(px + 6 + hv * 8, py + 8 + hv * 10, 8, 5);
               }
               break;
             }
             case t.ICE: {
               const isTop = above !== t.ICE;
-              ctx.fillStyle = U.mix('#bcd8ee', '#9fc2e0', hv);
-              ctx.fillRect(px, py, 32, 32);
+              ctx.drawImage((tex.ice && tex.ice[variant]) || tex.ground[variant], px, py, 32, 32);
               if (isTop) {
-                ctx.fillStyle = '#eef8ff';
-                ctx.fillRect(px, py, 32, 6);
+                ctx.fillStyle = 'rgba(245,252,255,0.95)';
+                ctx.fillRect(px, py, 32, 5);
+                ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                ctx.fillRect(px, py + 5, 32, 1.5);
               }
-              ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-              ctx.lineWidth = 1.5;
-              ctx.beginPath(); ctx.moveTo(px + 6, py + 22); ctx.lineTo(px + 14, py + 12); ctx.stroke();
               break;
             }
             case t.SAND: {
-              ctx.fillStyle = U.shade('#dab871', (hv - 0.5) * 0.1);
-              ctx.fillRect(px, py, 32, 32);
+              ctx.drawImage(tex.ground[variant], px, py, 32, 32);
               const sink = Math.sin(time * 2.2 + tx) * 2;
-              ctx.fillStyle = '#eccf8e';
+              ctx.fillStyle = 'rgba(240,212,150,0.85)';
               ctx.fillRect(px, py + 2 + sink, 32, 4);
+              ctx.fillStyle = 'rgba(190,150,80,0.5)';
+              ctx.fillRect(px, py + 6 + sink, 32, 1.5);
               break;
             }
             case t.PLATFORM: {
-              if (this.wi === 0) { // خشبية
-                ctx.fillStyle = '#8a5a30';
-                U.roundRect(ctx, px, py + 2, 32, 12, 3); ctx.fill();
-                ctx.fillStyle = '#a8763e';
-                ctx.fillRect(px + 2, py + 3, 28, 4);
-              } else if (this.wi === 4) { // سحابية
-                ctx.fillStyle = 'rgba(255,255,255,0.92)';
-                ctx.beginPath();
-                ctx.ellipse(px + 16, py + 9, 17, 8, 0, 0, 7);
-                ctx.fill();
-              } else {
-                ctx.fillStyle = U.shade(w.mid, 0.15);
-                U.roundRect(ctx, px, py + 2, 32, 12, 3); ctx.fill();
-                ctx.fillStyle = U.shade(w.mid, 0.35);
-                ctx.fillRect(px + 2, py + 3, 28, 3);
-              }
+              ctx.drawImage(tex.platform[variant], px, py, 32, 32);
+              // ظل ناعم أسفل المنصة
+              const sg = ctx.createLinearGradient(0, py + 14, 0, py + 22);
+              sg.addColorStop(0, 'rgba(10,10,30,0.2)');
+              sg.addColorStop(1, 'rgba(10,10,30,0)');
+              ctx.fillStyle = sg;
+              ctx.fillRect(px, py + 14, 32, 8);
               break;
             }
             case t.SPIKE: {
@@ -525,28 +528,51 @@ window.RN = window.RN || {};
             }
             case t.LAVA: {
               const isTop = above !== t.LAVA;
-              ctx.fillStyle = '#c8401e';
+              const lg = ctx.createLinearGradient(0, py, 0, py + 32);
+              lg.addColorStop(0, isTop ? '#e0552a' : '#c8401e');
+              lg.addColorStop(1, '#8a2812');
+              ctx.fillStyle = lg;
               ctx.fillRect(px, py, 32, 32);
               if (isTop) {
                 const wv = Math.sin(time * 3 + tx * 0.9) * 3;
                 ctx.fillStyle = '#ff8a2a';
                 ctx.fillRect(px, py + 2 + wv, 32, 6);
                 ctx.fillStyle = '#ffd24a';
-                ctx.fillRect(px + hv * 20, py + 3 + wv, 6, 3);
+                ctx.fillRect(px + hv * 20, py + 3 + wv, 7, 3);
+                // توهج فوق السطح (Bloom)
+                ctx.globalCompositeOperation = 'screen';
+                const glow = ctx.createLinearGradient(0, py - 14, 0, py + 6);
+                glow.addColorStop(0, 'rgba(255,120,40,0)');
+                glow.addColorStop(1, `rgba(255,140,50,${0.3 + Math.sin(time * 4 + tx) * 0.1})`);
+                ctx.fillStyle = glow;
+                ctx.fillRect(px, py - 14, 32, 20);
+                // فقاعة حمم
+                if (hv > 0.75) {
+                  const bt = (time * 0.8 + hv * 5) % 1;
+                  ctx.fillStyle = `rgba(255,210,90,${0.9 - bt})`;
+                  ctx.beginPath(); ctx.arc(px + hv * 26, py + 4 + wv - bt * 8, 2.5 * (1 - bt * 0.5), 0, 7); ctx.fill();
+                }
+                ctx.globalCompositeOperation = 'source-over';
               }
               break;
             }
             case t.WATER: {
               const isTop = above !== t.WATER;
-              ctx.fillStyle = U.alpha(w.liquid, 0.75);
+              const wg = ctx.createLinearGradient(0, py, 0, py + 32);
+              wg.addColorStop(0, U.alpha(w.liquid, isTop ? 0.62 : 0.75));
+              wg.addColorStop(1, U.alpha(U.shade(w.liquid, -0.35), 0.85));
+              ctx.fillStyle = wg;
               ctx.fillRect(px, py, 32, 32);
               if (isTop) {
                 const wv = Math.sin(time * 2.5 + tx * 0.8) * 2.5;
-                ctx.fillStyle = 'rgba(255,255,255,0.55)';
-                ctx.fillRect(px, py + 2 + wv, 32, 3);
-                // انعكاس لامع
-                ctx.fillStyle = 'rgba(255,255,255,0.18)';
-                ctx.fillRect(px + 4 + Math.sin(time + tx) * 4, py + 8, 12, 2);
+                ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                ctx.fillRect(px, py + 2 + wv, 32, 2.5);
+                // لمعان انعكاس الشمس المتكسر
+                ctx.globalCompositeOperation = 'screen';
+                ctx.fillStyle = `rgba(255,250,220,${0.14 + Math.sin(time * 1.6 + tx * 2) * 0.08})`;
+                ctx.fillRect(px + 3 + Math.sin(time + tx) * 5, py + 7, 14, 2);
+                ctx.fillRect(px + 14 + Math.sin(time * 1.3 + tx) * 4, py + 13, 9, 1.5);
+                ctx.globalCompositeOperation = 'source-over';
               }
               break;
             }
