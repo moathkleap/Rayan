@@ -11,14 +11,14 @@ window.RN = window.RN || {};
 (function () {
   const U = RN.U;
 
-  const SKIN = '#f2c69c';
-  const SKIN_HI = '#ffe3c0';
-  const SKIN_SHADE = '#d9a877';
-  const SKIN_DEEP = '#c08d5c';
+  const SKIN = '#edbd8e';
+  const SKIN_HI = '#ffdcae';
+  const SKIN_SHADE = '#d09e66';
+  const SKIN_DEEP = '#b8854e';
   const LINE = 'rgba(74,44,26,0.6)';
-  const HAIR = '#38281c';
-  const HAIR_DK = '#241708';
-  const HAIR_HI = '#6b4e35';
+  const HAIR = '#241a12';
+  const HAIR_DK = '#150e07';
+  const HAIR_HI = '#4a3826';
   const NAYA_SKIN = '#efc29c';
   const NAYA_SKIN_HI = '#ffdfc0';
   const NAYA_HAIR = '#2c1f14';
@@ -234,15 +234,30 @@ window.RN = window.RN || {};
     ctx.save();
     ctx.translate(ox, oy);
     ctx.rotate(ang * 0.6);
-    ctx.strokeStyle = front ? skinGrad(ctx, -3, 0, 3, 16) : SKIN_SHADE;
-    ctx.lineWidth = 6; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(ang > 0 ? 3 : -1, 15); ctx.stroke();
-    // ركبة (لمسة ظل)
-    ctx.fillStyle = U.alpha(SKIN_DEEP, 0.25);
-    ctx.beginPath(); ctx.ellipse(ang > 0 ? 1.5 : -0.5, 8, 2, 1.2, 0, 0, 7); ctx.fill();
-    // جورب قصير
-    ctx.strokeStyle = '#f6f6f2'; ctx.lineWidth = 5.4;
-    ctx.beginPath(); ctx.moveTo(ang > 0 ? 2.6 : -0.9, 12.5); ctx.lineTo(ang > 0 ? 3 : -1, 14.5); ctx.stroke();
+    const ax = ang > 0 ? 2.6 : -0.8; // موضع الكاحل
+    // ساق مدببة: فخذ أعرض ينحدر لكاحل أنحف مع بطة خفيفة
+    ctx.fillStyle = front ? skinGrad(ctx, -3, 0, 3, 16) : SKIN_SHADE;
+    ctx.beginPath();
+    ctx.moveTo(-3.4, -1);
+    ctx.quadraticCurveTo(-3.9, 6.5, ax - 2.1, 12.5);
+    ctx.lineTo(ax - 2.1, 15.5);
+    ctx.lineTo(ax + 2.1, 15.5);
+    ctx.lineTo(ax + 2.1, 12.5);
+    ctx.quadraticCurveTo(4.2, 6.5, 3.4, -1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(74,44,26,0.35)'; ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // ركبة (لمسة ظل + لمعة)
+    ctx.fillStyle = U.alpha(SKIN_DEEP, 0.28);
+    ctx.beginPath(); ctx.ellipse((ax) * 0.5 + 0.4, 7.5, 1.9, 1.1, 0, 0, 7); ctx.fill();
+    ctx.fillStyle = 'rgba(255,225,190,0.5)';
+    ctx.beginPath(); ctx.ellipse((ax) * 0.5 - 1, 5.5, 1, 1.6, 0.2, 0, 7); ctx.fill();
+    // جورب قصير بحافة مطوية
+    ctx.fillStyle = '#f6f6f2';
+    U.roundRect(ctx, ax - 2.4, 12.2, 4.8, 3.6, 1.6); ctx.fill();
+    ctx.fillStyle = '#e2e2da';
+    ctx.fillRect(ax - 2.4, 13.4, 4.8, 0.9);
     // حذاء رياضي
     ctx.save();
     ctx.translate(ang > 0 ? 3 : -1, 17);
@@ -284,19 +299,37 @@ window.RN = window.RN || {};
     ctx.beginPath(); ctx.moveTo(-2.5, 6.2); ctx.lineTo(2.5, 6.2); ctx.stroke();
     // ساعد ويد
     ctx.strokeStyle = front ? skinGrad(ctx, -2, 7, 2, 16) : SKIN_SHADE;
-    ctx.lineWidth = 4.3; ctx.beginPath(); ctx.moveTo(0, 7); ctx.lineTo(0, 14.5); ctx.stroke();
-    const hg = ctx.createRadialGradient(-0.8, 14.9, 0.5, 0, 15.5, 3.0);
+    ctx.lineWidth = 4.1; ctx.beginPath(); ctx.moveTo(0, 7); ctx.lineTo(0, 13.6); ctx.stroke();
+    // كف بأصابع (قبضة شبه مفتوحة)
+    const hg = ctx.createRadialGradient(-0.8, 14.6, 0.5, 0, 15.3, 3.2);
     hg.addColorStop(0, front ? SKIN_HI : SKIN);
     hg.addColorStop(1, front ? SKIN : SKIN_SHADE);
     ctx.fillStyle = hg;
-    ctx.beginPath(); ctx.arc(0, 15.5, 2.85, 0, 7); ctx.fill();
+    // راحة اليد
+    ctx.beginPath();
+    ctx.moveTo(-2.5, 13.4);
+    ctx.quadraticCurveTo(-2.9, 16.2, -1.7, 17.3);
+    // ثلاثة أصابع (نتوءات) عند الأسفل
+    ctx.arc(-1.1, 17.15, 0.85, Math.PI * 0.9, Math.PI * 0.1, true);
+    ctx.arc(0.6, 17.35, 0.9, Math.PI * 0.95, Math.PI * 0.05, true);
+    ctx.arc(2.2, 17.0, 0.85, Math.PI, 0, true);
+    ctx.quadraticCurveTo(3.1, 15.3, 2.6, 13.5);
+    ctx.quadraticCurveTo(0, 12.4, -2.5, 13.4);
+    ctx.closePath();
+    ctx.fill();
     ctx.strokeStyle = LINE; ctx.lineWidth = 0.7;
-    ctx.beginPath(); ctx.arc(0, 15.5, 2.85, 0, 7); ctx.stroke();
+    ctx.stroke();
+    // فواصل الأصابع
+    ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.6); ctx.lineWidth = 0.55;
+    ctx.beginPath();
+    ctx.moveTo(-0.3, 17.5); ctx.lineTo(-0.3, 15.9);
+    ctx.moveTo(1.4, 17.5); ctx.lineTo(1.4, 15.9);
+    ctx.stroke();
     // إبهام
-    if (front) {
-      ctx.fillStyle = SKIN;
-      ctx.beginPath(); ctx.ellipse(2.2, 14.8, 0.95, 1.5, 0.5, 0, 7); ctx.fill();
-    }
+    ctx.fillStyle = front ? SKIN : SKIN_SHADE;
+    ctx.beginPath(); ctx.ellipse(front ? 2.7 : -2.7, 14.6, 0.9, 1.5, front ? 0.45 : -0.45, 0, 7); ctx.fill();
+    ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.4); ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.ellipse(front ? 2.7 : -2.7, 14.6, 0.9, 1.5, front ? 0.45 : -0.45, 0, 7); ctx.stroke();
     // شفرة الطاقة
     if (front && p.armPose === 'swing') {
       ctx.globalCompositeOperation = 'screen';
@@ -326,23 +359,23 @@ window.RN = window.RN || {};
 
     // ---- أذن (خلف الوجه — يظهر طرفها الخارجي فقط) ----
     ctx.fillStyle = SKIN;
-    ctx.beginPath(); ctx.ellipse(-12.6, 1.2, 2.9, 3.7, 0.12, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(-11.9, 1.4, 2.5, 3.3, 0.12, 0, 7); ctx.fill();
     ctx.strokeStyle = LINE; ctx.lineWidth = 0.9;
-    ctx.beginPath(); ctx.ellipse(-12.6, 1.2, 2.9, 3.7, 0.12, 0, 7); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(-11.9, 1.4, 2.5, 3.3, 0.12, 0, 7); ctx.stroke();
     ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.8); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(-13.6, -0.6); ctx.quadraticCurveTo(-12, -0.2, -12.4, 2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-12.8, -0.2); ctx.quadraticCurveTo(-11.4, 0.2, -11.8, 2.2); ctx.stroke();
 
     // ---- شكل الوجه: دائرة بذقن ناعم ----
     const facePath = () => {
       ctx.beginPath();
-      ctx.moveTo(-13, -1);
-      ctx.quadraticCurveTo(-13.4, -9, -7.5, -12.2);
-      ctx.quadraticCurveTo(0, -14.4, 7.5, -12.2);
-      ctx.quadraticCurveTo(13.4, -9, 13.2, -1);
-      ctx.quadraticCurveTo(13, 6.5, 8, 10.6);   // خد أمامي
-      ctx.quadraticCurveTo(3.5, 13.6, 0, 13.6); // ذقن
-      ctx.quadraticCurveTo(-5.5, 13.4, -9.5, 9.8);
-      ctx.quadraticCurveTo(-13, 6, -13, -1);
+      ctx.moveTo(-12.3, -1);
+      ctx.quadraticCurveTo(-12.7, -8.8, -7.2, -11.9);
+      ctx.quadraticCurveTo(0, -14, 7.2, -11.9);
+      ctx.quadraticCurveTo(12.7, -8.8, 12.5, -1);
+      ctx.quadraticCurveTo(12.3, 6.3, 7.6, 10.3);  // خد أمامي
+      ctx.quadraticCurveTo(3.4, 13.2, 0, 13.2);    // ذقن
+      ctx.quadraticCurveTo(-5.2, 13, -9, 9.6);
+      ctx.quadraticCurveTo(-12.3, 5.8, -12.3, -1);
       ctx.closePath();
     };
     // تدرج جلد أساسي
@@ -385,70 +418,76 @@ window.RN = window.RN || {};
     ctx.strokeStyle = LINE; ctx.lineWidth = 1.05;
     ctx.stroke();
 
-    // ---- الشعر: كتلة + خصلات فردية ----
-    const sway = (p.hairSway || 0) * 1.6 + Math.sin(t * 3) * 0.4;
-    const hg2 = ctx.createLinearGradient(0, -17, 0, -4);
-    hg2.addColorStop(0, '#513c29');
+    // ---- الشعر: قصة قصيرة حديثة (Fade) من صورة ريان ----
+    // جوانب مدرّجة قصيرة جدًا (تلاشٍ) تظهر خلفية فروة أفتح
+    const fade = ctx.createLinearGradient(0, -6, 0, 2);
+    fade.addColorStop(0, U.alpha(HAIR, 0.75));
+    fade.addColorStop(1, U.alpha(HAIR, 0.06));
+    ctx.fillStyle = fade;
+    ctx.beginPath();
+    ctx.moveTo(-12.4, -3);
+    ctx.quadraticCurveTo(-12.6, 1, -11.7, 3.5);
+    ctx.lineTo(-10, 3.5);
+    ctx.quadraticCurveTo(-10.9, 0.5, -10.8, -3.5);
+    ctx.closePath(); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(12.5, -3);
+    ctx.quadraticCurveTo(12.6, 1, 11.8, 3.5);
+    ctx.lineTo(10.2, 3.5);
+    ctx.quadraticCurveTo(11, 0.5, 10.9, -3.5);
+    ctx.closePath(); ctx.fill();
+    // الكتلة العلوية: قبعة شعر كثيفة قصيرة تلتصق بالجمجمة
+    const hg2 = ctx.createLinearGradient(0, -17.5, 0, -6);
+    hg2.addColorStop(0, HAIR_HI);
     hg2.addColorStop(0.45, HAIR);
     hg2.addColorStop(1, HAIR_DK);
     ctx.fillStyle = hg2;
-    // الكتلة الأساسية
     ctx.beginPath();
-    ctx.moveTo(-13.2, 0.5);
-    ctx.quadraticCurveTo(-14.4, -10, -8, -13.6);
-    ctx.quadraticCurveTo(0, -16.6, 8, -13.6);
-    ctx.quadraticCurveTo(14.2, -10.4, 13.6, -3.5);
-    // حافة أمامية بخصلات مسننة فوق الجبهة
-    ctx.quadraticCurveTo(12.5, -6.5, 10.4, -7.6);
-    ctx.quadraticCurveTo(10.8, -5.6, 9.4, -6.9);
-    ctx.quadraticCurveTo(7.6, -8.9, 5.2, -8.3);
-    ctx.quadraticCurveTo(3.2, -9.9, 0.6, -9.1);
-    ctx.quadraticCurveTo(-2.4, -10.3, -5.2, -8.8);
-    ctx.quadraticCurveTo(-8.4, -9.6, -10.4, -7.4);
-    ctx.quadraticCurveTo(-12.4, -5.8, -13.2, 0.5);
+    ctx.moveTo(-12.45, -2.6);
+    ctx.quadraticCurveTo(-13.4, -10, -7.6, -13.6);
+    ctx.quadraticCurveTo(0, -16.9, 7.6, -13.6);
+    ctx.quadraticCurveTo(13.4, -10, 12.55, -2.6);
+    // خط الجبهة الأمامي: حافة شبه مستقيمة بتعرج خفيف (بلا غرّة)
+    ctx.quadraticCurveTo(11.9, -5.4, 10.6, -6.7);
+    ctx.quadraticCurveTo(9.8, -7.9, 8.2, -7.6);
+    ctx.quadraticCurveTo(5.4, -8.5, 2.6, -8.1);
+    ctx.quadraticCurveTo(-0.4, -8.7, -3.4, -8.2);
+    ctx.quadraticCurveTo(-6.6, -8.8, -9.2, -7.9);
+    ctx.quadraticCurveTo(-11, -7.1, -11.8, -5.5);
+    ctx.quadraticCurveTo(-12.3, -4.4, -12.45, -2.6);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = 'rgba(30,18,8,0.55)'; ctx.lineWidth = 0.9;
+    ctx.strokeStyle = 'rgba(15,10,5,0.55)'; ctx.lineWidth = 0.9;
     ctx.stroke();
-    // غرة أمامية مرفوعة (خصلتان) تتمايل
-    ctx.fillStyle = hg2;
+    // نسيج الشعر القصير: أقواس صغيرة كثيفة على الكتلة العلوية
+    ctx.strokeStyle = U.alpha('#5a4530', 0.7);
+    ctx.lineWidth = 0.85; ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(4.6, -11.5);
-    ctx.quadraticCurveTo(9.5 + sway, -17.2, 13.6 + sway * 0.7, -10.5);
-    ctx.quadraticCurveTo(10.6, -12.4, 8.2, -10.2);
-    ctx.quadraticCurveTo(6.6, -9.4, 4.6, -11.5);
-    ctx.closePath(); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(0.5, -12.8);
-    ctx.quadraticCurveTo(4 + sway * 0.6, -17.6, 8 + sway * 0.5, -14.4);
-    ctx.quadraticCurveTo(4.5, -14.6, 2.4, -11.8);
-    ctx.closePath(); ctx.fill();
-    // خصلة خلف الأذن
-    ctx.beginPath();
-    ctx.moveTo(-12.8, -2.5);
-    ctx.quadraticCurveTo(-15.2 - sway * 0.7, -0.5, -13.8 - sway * 0.4, 3);
-    ctx.quadraticCurveTo(-13, 0.5, -12.9, -1);
-    ctx.closePath(); ctx.fill();
-    // لمعات خصل (خطوط شعر فردية)
-    ctx.strokeStyle = U.alpha(HAIR_HI, 0.9);
-    ctx.lineWidth = 1.1; ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(-2, -12.6); ctx.quadraticCurveTo(2, -14.2, 6, -12.6);
-    ctx.moveTo(-8, -10.6); ctx.quadraticCurveTo(-5, -12, -2.6, -11.4);
-    ctx.moveTo(5.5, -13.4); ctx.quadraticCurveTo(8.5 + sway * 0.5, -15, 11 + sway * 0.5, -12.5);
+    for (let k = 0; k < 8; k++) {
+      const hx = -8.4 + k * 2.15 + ((k * 7) % 3) * 0.35;
+      const hy = -11.2 - Math.sin(((k + 0.5) / 8) * Math.PI) * 2.7 + ((k * 5) % 2) * 0.4;
+      ctx.moveTo(hx, hy);
+      ctx.quadraticCurveTo(hx + 0.9, hy - 1.0, hx + 1.8, hy - 0.25);
+    }
     ctx.stroke();
-    ctx.strokeStyle = U.alpha('#8a6a48', 0.5);
-    ctx.lineWidth = 0.7;
+    // لمعة إضاءة علوية خفيفة
+    ctx.strokeStyle = U.alpha('#6a543c', 0.75);
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(-10.5, -8.2); ctx.quadraticCurveTo(-8, -9.6, -6, -9);
-    ctx.moveTo(0, -10.8); ctx.quadraticCurveTo(3, -12, 5.5, -11);
+    ctx.moveTo(-4, -14.6); ctx.quadraticCurveTo(1, -16.2, 6, -14.4);
+    ctx.stroke();
+    // خط حلاقة حاد فوق الأذن (تشطيب الحلاق)
+    ctx.strokeStyle = U.alpha(HAIR, 0.5); ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(-12.2, -4.4); ctx.quadraticCurveTo(-11.1, -5.5, -9.6, -6.2);
+    ctx.moveTo(12.3, -4.4); ctx.quadraticCurveTo(11.3, -5.5, 9.8, -6.2);
     ctx.stroke();
 
     // ---- عيون زجاجية ----
     const lookX = U.clamp(fx.lookX !== undefined ? fx.lookX : 0.5, -1, 1);
     const lookY = U.clamp(fx.lookY || 0, -1, 1);
     if (p.eyes === 'open') {
-      for (const ex of [5.6, -2.6]) {
+      for (const ex of [4.9, -3.3]) {
         // بياض بظل جفن علوي
         const wg = ctx.createLinearGradient(0, -4.8, 0, 2.6);
         wg.addColorStop(0, '#dfe4ea');
@@ -484,21 +523,21 @@ window.RN = window.RN || {};
     } else {
       ctx.strokeStyle = '#4a2f1d'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
       ctx.beginPath();
-      ctx.moveTo(2.6, -0.6); ctx.quadraticCurveTo(5.6, 0.8, 8.4, -0.6);
-      ctx.moveTo(-5.4, -0.6); ctx.quadraticCurveTo(-2.6, 0.8, 0.2, -0.6);
+      ctx.moveTo(2.1, -0.6); ctx.quadraticCurveTo(4.9, 0.8, 7.7, -0.6);
+      ctx.moveTo(-6.1, -0.6); ctx.quadraticCurveTo(-3.3, 0.8, -0.5, -0.6);
       ctx.stroke();
       // رموش مغلقة
       ctx.lineWidth = 0.8;
       ctx.beginPath();
-      ctx.moveTo(7.8, 0); ctx.lineTo(8.8, 0.8);
-      ctx.moveTo(-4.9, 0); ctx.lineTo(-5.9, 0.8);
+      ctx.moveTo(7.1, 0); ctx.lineTo(8.1, 0.8);
+      ctx.moveTo(-5.6, 0); ctx.lineTo(-6.6, 0.8);
       ctx.stroke();
     }
     // ---- حواجب رفيعة مقوسة ----
     ctx.fillStyle = U.alpha(HAIR, 0.92);
     const browY = p.mouth === 'grit' ? -4.9 : p.mouth === 'sad' ? -5.0 : -5.6;
     const tilt = p.mouth === 'grit' ? 0.9 : p.mouth === 'sad' ? -0.7 : -0.3;
-    for (const [bx, dir] of [[5.6, 1], [-2.6, -1]]) {
+    for (const [bx, dir] of [[4.9, 1], [-3.3, -1]]) {
       ctx.beginPath();
       ctx.moveTo(bx - 2.8 * dir, browY + tilt * 0.55 * dir);
       ctx.quadraticCurveTo(bx, browY - 0.9, bx + 2.8 * dir, browY - tilt * 0.4 * dir);
@@ -507,26 +546,26 @@ window.RN = window.RN || {};
     }
     // ---- أنف بظل ولمعة ----
     ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.9); ctx.lineWidth = 1.3; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(2.6, 1.4); ctx.quadraticCurveTo(3.9, 3.1, 2.5, 4.4); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(1.9, 1.4); ctx.quadraticCurveTo(3.1, 3.0, 1.8, 4.3); ctx.stroke();
     ctx.fillStyle = U.alpha(SKIN_DEEP, 0.28);
-    ctx.beginPath(); ctx.ellipse(2.2, 4.9, 1.7, 0.8, 0, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(1.6, 4.8, 1.6, 0.75, 0, 0, 7); ctx.fill();
     ctx.fillStyle = 'rgba(255,240,215,0.6)';
-    ctx.beginPath(); ctx.ellipse(3.4, 2.4, 0.7, 1.1, 0.3, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(2.7, 2.3, 0.65, 1.0, 0.3, 0, 7); ctx.fill();
     // ---- خدود ----
     ctx.fillStyle = 'rgba(240,120,105,0.25)';
-    ctx.beginPath(); ctx.ellipse(8.8, 4, 2.5, 1.6, 0.2, 0, 7); ctx.ellipse(-7, 4, 2.5, 1.6, -0.2, 0, 7); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(7.9, 4.2, 2.4, 1.55, 0.2, 0, 7); ctx.ellipse(-6.5, 4.2, 2.4, 1.55, -0.2, 0, 7); ctx.fill();
     // ---- فم ----
     ctx.strokeStyle = '#93493a'; ctx.lineWidth = 1.6; ctx.lineCap = 'round';
     if (p.mouth === 'smile') {
-      ctx.beginPath(); ctx.moveTo(-1.6, 6.4); ctx.quadraticCurveTo(2, 9.6, 5.8, 6.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-2.4, 6.4); ctx.quadraticCurveTo(1.2, 9.6, 5.0, 6.6); ctx.stroke();
       // شفة سفلية (لمعة)
       ctx.strokeStyle = 'rgba(255,200,175,0.7)'; ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.moveTo(0.4, 9.4); ctx.quadraticCurveTo(2.2, 10.2, 4, 9.4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-0.4, 9.4); ctx.quadraticCurveTo(1.4, 10.2, 3.2, 9.4); ctx.stroke();
       // غمازتا الابتسامة
       ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.55); ctx.lineWidth = 0.9;
       ctx.beginPath();
-      ctx.moveTo(-2.1, 5.8); ctx.lineTo(-2.7, 6.6);
-      ctx.moveTo(6.3, 6.0); ctx.lineTo(6.9, 6.8);
+      ctx.moveTo(-2.9, 5.8); ctx.lineTo(-3.5, 6.6);
+      ctx.moveTo(5.5, 6.0); ctx.lineTo(6.1, 6.8);
       ctx.stroke();
     } else if (p.mouth === 'grin' || p.mouth === 'open') {
       ctx.fillStyle = '#6e2f26';
@@ -647,8 +686,22 @@ window.RN = window.RN || {};
     // ---- أرجل + جوارب بكشكشة + حذاء أبيض ----
     const lg = ctx.createLinearGradient(-2, -16, 2, -4);
     lg.addColorStop(0, NAYA_SKIN_HI); lg.addColorStop(1, U.shade(NAYA_SKIN, -0.1));
-    ctx.strokeStyle = lg; ctx.lineWidth = 5; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(-3.5, -16); ctx.lineTo(-3.5, -5); ctx.moveTo(3.5, -16); ctx.lineTo(3.5, -5); ctx.stroke();
+    ctx.fillStyle = lg;
+    for (const sx of [-3.5, 3.5]) {
+      ctx.beginPath();
+      ctx.moveTo(sx - 2.6, -16);
+      ctx.quadraticCurveTo(sx - 2.9, -10, sx - 1.75, -5);
+      ctx.lineTo(sx + 1.75, -5);
+      ctx.quadraticCurveTo(sx + 2.9, -10, sx + 2.6, -16);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(74,44,26,0.3)'; ctx.lineWidth = 0.7;
+      ctx.stroke();
+      // ركبة صغيرة
+      ctx.fillStyle = 'rgba(190,140,95,0.3)';
+      ctx.beginPath(); ctx.ellipse(sx, -10, 1.3, 0.8, 0, 0, 7); ctx.fill();
+      ctx.fillStyle = lg;
+    }
     // جورب بكشكشة
     ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5.4;
     ctx.beginPath(); ctx.moveTo(-3.5, -7.5); ctx.lineTo(-3.5, -5.5); ctx.moveTo(3.5, -7.5); ctx.lineTo(3.5, -5.5); ctx.stroke();
@@ -1007,13 +1060,31 @@ window.RN = window.RN || {};
     ctx.strokeStyle = ag;
     ctx.lineWidth = 4.2; ctx.lineCap = 'round';
     ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, 12); ctx.stroke();
-    const hg = ctx.createRadialGradient(-0.7, 12.4, 0.3, 0, 13, 3);
+    const hg = ctx.createRadialGradient(-0.7, 12.2, 0.3, 0, 12.8, 3);
     hg.addColorStop(0, front ? NAYA_SKIN_HI : NAYA_SKIN);
     hg.addColorStop(1, front ? NAYA_SKIN : U.shade(NAYA_SKIN, -0.14));
     ctx.fillStyle = hg;
-    ctx.beginPath(); ctx.arc(0, 13, 2.9, 0, 7); ctx.fill();
-    ctx.strokeStyle = 'rgba(70,42,26,0.3)'; ctx.lineWidth = 0.6;
-    ctx.beginPath(); ctx.arc(0, 13, 2.9, 0, 7); ctx.stroke();
+    // كف صغير بأصابع
+    ctx.beginPath();
+    ctx.moveTo(-2.1, 11.3);
+    ctx.quadraticCurveTo(-2.5, 13.6, -1.5, 14.5);
+    ctx.arc(-0.9, 14.4, 0.7, Math.PI * 0.9, Math.PI * 0.1, true);
+    ctx.arc(0.5, 14.6, 0.75, Math.PI * 0.95, Math.PI * 0.05, true);
+    ctx.arc(1.8, 14.3, 0.7, Math.PI, 0, true);
+    ctx.quadraticCurveTo(2.6, 12.9, 2.2, 11.4);
+    ctx.quadraticCurveTo(0, 10.5, -2.1, 11.3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(70,42,26,0.35)'; ctx.lineWidth = 0.6;
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(190,140,95,0.55)'; ctx.lineWidth = 0.45;
+    ctx.beginPath();
+    ctx.moveTo(-0.2, 14.7); ctx.lineTo(-0.2, 13.4);
+    ctx.moveTo(1.1, 14.7); ctx.lineTo(1.1, 13.4);
+    ctx.stroke();
+    // إبهام
+    ctx.fillStyle = front ? NAYA_SKIN : U.shade(NAYA_SKIN, -0.1);
+    ctx.beginPath(); ctx.ellipse(front ? 2.3 : -2.3, 12.1, 0.7, 1.2, front ? 0.45 : -0.45, 0, 7); ctx.fill();
     // سوار خرز
     ctx.fillStyle = '#ffe08a';
     ctx.beginPath(); ctx.arc(-1.1, 9, 1.05, 0, 7); ctx.fill();
