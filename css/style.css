@@ -1,0 +1,88 @@
+/* Rayan & Naya — أنماط الصفحة وأزرار اللمس */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #06070f;
+  font-family: 'Segoe UI', 'Tahoma', 'Noto Kufi Arabic', 'Noto Sans Arabic', sans-serif;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+#game {
+  position: fixed;
+  inset: 0;
+  display: block;
+  touch-action: none;
+}
+
+/* شاشة التحميل */
+#loader {
+  position: fixed;
+  inset: 0;
+  background: linear-gradient(180deg, #0d1b2e, #06070f);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  color: #fff;
+}
+.loader-title {
+  font-size: 44px;
+  font-weight: 800;
+  background: linear-gradient(180deg, #ffe14a, #ff9a2a);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  margin-bottom: 12px;
+}
+.loader-sub {
+  color: #8ab0d8;
+  font-size: 16px;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+@keyframes pulse { 50% { opacity: 0.35; } }
+
+/* أزرار اللمس */
+#touch {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  display: none;
+}
+#touch.visible { display: block; }
+
+.pad {
+  position: absolute;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.left-pad { left: max(14px, env(safe-area-inset-left)); }
+.right-pad { right: max(14px, env(safe-area-inset-right)); }
+
+.tbtn {
+  pointer-events: auto;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  background: rgba(20, 26, 50, 0.55);
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 24px;
+  backdrop-filter: blur(2px);
+  -webkit-tap-highlight-color: transparent;
+}
+.tbtn.active { background: rgba(90, 160, 255, 0.55); transform: scale(0.94); }
+.tbtn.small { width: 50px; height: 50px; font-size: 17px; }
+.tbtn.action.jump { width: 74px; height: 74px; background: rgba(56, 182, 232, 0.45); }
+.tbtn.action.attack { background: rgba(232, 90, 90, 0.4); }
+.tbtn.action.dash { background: rgba(122, 216, 255, 0.35); }
+.tbtn.alt { opacity: 0.85; }
