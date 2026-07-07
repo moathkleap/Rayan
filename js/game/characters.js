@@ -15,7 +15,7 @@ window.RN = window.RN || {};
   const SKIN_HI = '#ffdcae';
   const SKIN_SHADE = '#d09e66';
   const SKIN_DEEP = '#b8854e';
-  const LINE = 'rgba(74,44,26,0.6)';
+  const LINE = 'rgba(52,30,18,0.8)';
   const HAIR = '#241a12';
   const HAIR_DK = '#150e07';
   const HAIR_HI = '#4a3826';
@@ -135,8 +135,8 @@ window.RN = window.RN || {};
     const breath = (p.breath || 0) * 0.7;
 
     // ---- ساق خلفية / ذراع خلفية (الكتف عند حافة الجذع) ----
-    leg(ctx, -4, -22, p.legB, o, false);
-    arm(ctx, -9.2, -36, p.armB, o, false, p, fx);
+    leg(ctx, -4.7, -21, p.legB, o, false);
+    arm(ctx, -9.7, -36.5, p.armB, o, false, p, fx);
 
     // ---- الجذع: تيشيرت ----
     const sg2 = ctx.createLinearGradient(-9, -40, 9, -20);
@@ -146,11 +146,11 @@ window.RN = window.RN || {};
     ctx.fillStyle = sg2;
     const hem = Math.sin(t * 10) * (p.hairSway || 0) * 1.2;
     ctx.beginPath();
-    ctx.moveTo(-9, -40 + breath * -0.8);
-    ctx.quadraticCurveTo(-10.5, -30, -9.5 - hem * 0.5, -20.5);
-    ctx.lineTo(9.5 + hem * 0.5, -20.5);
-    ctx.quadraticCurveTo(10.5 + breath * 0.8, -30, 9, -40 + breath * -0.8);
-    ctx.quadraticCurveTo(0, -43 - breath, -9, -40 + breath * -0.8);
+    ctx.moveTo(-9.6, -40 + breath * -0.8);
+    ctx.quadraticCurveTo(-11.2, -30, -10.1 - hem * 0.5, -19.5);
+    ctx.lineTo(10.1 + hem * 0.5, -19.5);
+    ctx.quadraticCurveTo(11.2 + breath * 0.8, -30, 9.6, -40 + breath * -0.8);
+    ctx.quadraticCurveTo(0, -43.4 - breath, -9.6, -40 + breath * -0.8);
     ctx.closePath();
     ctx.fill();
     ctx.strokeStyle = LINE; ctx.lineWidth = 1;
@@ -200,22 +200,22 @@ window.RN = window.RN || {};
     pg.addColorStop(0, U.shade(o.pants, 0.14));
     pg.addColorStop(1, U.shade(o.pants, -0.14));
     ctx.fillStyle = pg;
-    U.roundRect(ctx, -8.5, -23, 17, 8.5, 3); ctx.fill();
+    U.roundRect(ctx, -9.3, -22.5, 18.6, 9.5, 3.5); ctx.fill();
     ctx.strokeStyle = LINE; ctx.lineWidth = 1;
-    U.roundRect(ctx, -8.5, -23, 17, 8.5, 3); ctx.stroke();
+    U.roundRect(ctx, -9.3, -22.5, 18.6, 9.5, 3.5); ctx.stroke();
     // خط وسط + حافة مخيطة
     ctx.strokeStyle = U.alpha(U.shade(o.pants, -0.4), 0.7); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(0, -22.5); ctx.lineTo(0, -18); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, -22); ctx.lineTo(0, -17); ctx.stroke();
     ctx.strokeStyle = U.alpha(U.shade(o.pants, 0.4), 0.8);
-    ctx.beginPath(); ctx.moveTo(-7.5, -16.3); ctx.lineTo(-1.5, -16.3); ctx.moveTo(1.5, -16.3); ctx.lineTo(7.5, -16.3); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-8.2, -14.6); ctx.lineTo(-1.5, -14.6); ctx.moveTo(1.5, -14.6); ctx.lineTo(8.2, -14.6); ctx.stroke();
 
     // ---- ساق أمامية / ذراع / رأس ----
     // الذراع المتدلية تُرسم خلف الرأس (الرأس الكرتوني أعرض من الجذع)،
     // والمرفوعة أو الهجومية تُرسم أمامه
-    leg(ctx, 4, -22, p.legA, o, true);
-    if (!p.armFront) arm(ctx, 9.2, -36, p.armA, o, true, p, fx);
+    leg(ctx, 4.7, -21, p.legA, o, true);
+    if (!p.armFront) arm(ctx, 9.7, -36.5, p.armA, o, true, p, fx);
     head(ctx, p, t, o, fx);
-    if (p.armFront) arm(ctx, 9.2, -36, p.armA, o, true, p, fx);
+    if (p.armFront) arm(ctx, 9.7, -36.5, p.armA, o, true, p, fx);
 
     ctx.globalAlpha = 1;
     ctx.restore();
@@ -225,72 +225,91 @@ window.RN = window.RN || {};
     ctx.save();
     ctx.translate(ox, oy);
     ctx.rotate(ang * 0.6);
-    // الكاحل أمام الورك قليلًا دائمًا (يمنع تزاحم القدمين في المنتصف)
-    const ax = front ? 1.2 : 0.6;
-    // ساق بمفصل ركبة: فخذ يميل قليلًا للأمام ثم قصبة تعود للكاحل
-    ctx.fillStyle = front ? skinGrad(ctx, -3, 0, 3, 15) : SKIN_SHADE;
+    const ax = front ? 0.9 : 0.3;
+    // ساق ممتلئة (Chunky): أسطوانة مدببة قصيرة بحجم حقيقي
+    const lgr = ctx.createLinearGradient(-3, 0, 3.5, 0);
+    lgr.addColorStop(0, front ? SKIN : SKIN_SHADE);
+    lgr.addColorStop(0.55, front ? SKIN_HI : SKIN);
+    lgr.addColorStop(1, front ? SKIN_SHADE : SKIN_DEEP);
+    ctx.fillStyle = lgr;
     ctx.beginPath();
-    ctx.moveTo(-3.0, -1.5);
-    ctx.quadraticCurveTo(-3.2, 3.5, ax - 2.2, 7);      // خارج الفخذ حتى الركبة
-    ctx.quadraticCurveTo(ax - 2.4, 10.5, ax - 1.8, 13); // قصبة
-    ctx.quadraticCurveTo(ax - 1.7, 14.8, ax, 15);       // كاحل مستدير
-    ctx.quadraticCurveTo(ax + 1.7, 14.8, ax + 1.8, 13);
-    ctx.quadraticCurveTo(ax + 2.3, 10.5, ax + 2.2, 7);
-    ctx.quadraticCurveTo(3.3, 3.5, 3.0, -1.5);
+    ctx.moveTo(-3.4, -2.5);
+    ctx.quadraticCurveTo(-3.7, 4, ax - 2.6, 8.5);
+    ctx.quadraticCurveTo(ax - 2.7, 11.5, ax, 11.8);
+    ctx.quadraticCurveTo(ax + 2.7, 11.5, ax + 2.6, 8.5);
+    ctx.quadraticCurveTo(3.8, 4, 3.4, -2.5);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = 'rgba(74,44,26,0.3)'; ctx.lineWidth = 0.75;
+    ctx.strokeStyle = LINE; ctx.lineWidth = 1.15;
     ctx.stroke();
-    // ظل ركبة ناعم جدًا (بلا خطوط)
-    ctx.fillStyle = U.alpha(SKIN_DEEP, 0.16);
-    ctx.beginPath(); ctx.ellipse(ax * 0.5, 7.6, 1.7, 1.0, 0, 0, 7); ctx.fill();
-    // جورب قصير
+    // جورب سميك
     ctx.fillStyle = '#f8f8f4';
-    U.roundRect(ctx, ax - 2.1, 12.6, 4.2, 3.2, 1.7); ctx.fill();
-    ctx.strokeStyle = 'rgba(74,44,26,0.2)'; ctx.lineWidth = 0.55;
-    U.roundRect(ctx, ax - 2.1, 12.6, 4.2, 3.2, 1.7); ctx.stroke();
-    // حذاء رياضي منحوت
+    ctx.beginPath();
+    ctx.moveTo(ax - 2.75, 9.2);
+    ctx.quadraticCurveTo(ax - 2.8, 12.4, ax, 12.6);
+    ctx.quadraticCurveTo(ax + 2.8, 12.4, ax + 2.75, 9.2);
+    ctx.quadraticCurveTo(ax, 10.2, ax - 2.75, 9.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = LINE; ctx.lineWidth = 0.9;
+    ctx.stroke();
+    /* حذاء كرتوني كبير — توقيع الأسلوب الجديد:
+       جسم منتفخ بمقدمة مستديرة ضخمة ونعل أبيض سميك */
     ctx.save();
-    ctx.translate(ax, 17);
-    const shg = ctx.createLinearGradient(0, -3.5, 0, 3);
-    shg.addColorStop(0, U.shade(o.shoes, 0.22));
-    shg.addColorStop(0.6, o.shoes);
-    shg.addColorStop(1, U.shade(o.shoes, -0.15));
+    ctx.translate(ax, 14.6);
+    const shg = ctx.createLinearGradient(0, -4, 0, 3);
+    shg.addColorStop(0, U.shade(o.shoes, 0.28));
+    shg.addColorStop(0.55, o.shoes);
+    shg.addColorStop(1, U.shade(o.shoes, -0.18));
     ctx.fillStyle = shg;
     ctx.beginPath();
-    ctx.moveTo(-3.6, -2.0);
-    ctx.quadraticCurveTo(-4.0, 1.3, -2.9, 2.3);
-    ctx.lineTo(4.8, 2.3);
-    ctx.quadraticCurveTo(7.0, 2.1, 6.8, 0.5);
-    ctx.quadraticCurveTo(6.5, -1.4, 4.2, -1.8);
-    ctx.quadraticCurveTo(1.4, -3.4, -1.1, -3.0);
-    ctx.quadraticCurveTo(-3.0, -2.9, -3.6, -2.0);
+    ctx.moveTo(-4.6, -3.2);                                  // كعب علوي
+    ctx.quadraticCurveTo(-5.9, -1.2, -5.4, 1.6);             // ظهر الكعب
+    ctx.lineTo(7.2, 1.6);
+    ctx.quadraticCurveTo(9.6, 1.2, 9.2, -1.2);               // مقدمة ضخمة مستديرة
+    ctx.quadraticCurveTo(8.7, -3.8, 5.6, -4.0);
+    ctx.quadraticCurveTo(2.4, -5.6, -0.8, -4.9);             // لسان الحذاء
+    ctx.quadraticCurveTo(-3.4, -4.5, -4.6, -3.2);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = LINE; ctx.lineWidth = 0.8;
+    ctx.strokeStyle = LINE; ctx.lineWidth = 1.15;
     ctx.stroke();
-    // نعل أبيض
+    // لمعة علوية
+    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.ellipse(1.5, -3.4, 3.4, 1.1, -0.12, 0, 7); ctx.fill();
+    // غطاء المقدمة المطاطي
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath();
+    ctx.moveTo(5.2, -3.4);
+    ctx.quadraticCurveTo(8.9, -3.2, 9.2, -1.2);
+    ctx.quadraticCurveTo(9.4, 0.6, 8.2, 1.4);
+    ctx.quadraticCurveTo(6.6, 1.6, 5.8, 1.5);
+    ctx.quadraticCurveTo(7.0, -1.4, 5.2, -3.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(52,30,18,0.5)'; ctx.lineWidth = 0.8;
+    ctx.stroke();
+    // نعل أبيض سميك جدًا
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
-    ctx.moveTo(-3.8, 2.1);
-    ctx.quadraticCurveTo(-4.0, 4.0, -2.4, 4.1);
-    ctx.lineTo(5.2, 4.1);
-    ctx.quadraticCurveTo(7.2, 3.9, 6.9, 2.3);
-    ctx.quadraticCurveTo(6.8, 1.7, 6.1, 1.95);
-    ctx.lineTo(-3.1, 1.95);
+    ctx.moveTo(-5.6, 1.4);
+    ctx.quadraticCurveTo(-6.2, 4.6, -3.8, 4.9);
+    ctx.lineTo(7.6, 4.9);
+    ctx.quadraticCurveTo(10.2, 4.6, 9.6, 1.6);
+    ctx.quadraticCurveTo(9.4, 1.0, 8.6, 1.35);
+    ctx.lineTo(-4.8, 1.35);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = 'rgba(74,44,26,0.28)'; ctx.lineWidth = 0.55;
+    ctx.strokeStyle = LINE; ctx.lineWidth = 1.0;
     ctx.stroke();
-    ctx.fillStyle = 'rgba(140,150,170,0.45)';
-    ctx.fillRect(-3.0, 3.2, 9.4, 0.6);
-    // مقدمة مطاطية + أربطة
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.beginPath(); ctx.ellipse(5.2, 0.5, 1.7, 1.5, 0.15, -1.8, 1.5); ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 0.8;
+    // خط وسط النعل
+    ctx.strokeStyle = 'rgba(140,150,170,0.55)'; ctx.lineWidth = 0.7;
+    ctx.beginPath(); ctx.moveTo(-4.6, 3.2); ctx.lineTo(9.0, 3.2); ctx.stroke();
+    // أربطة
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 1.0;
     ctx.beginPath();
-    ctx.moveTo(-0.6, -1.7); ctx.lineTo(2.3, -1.0);
-    ctx.moveTo(-0.8, -0.4); ctx.lineTo(2.2, 0.3);
+    ctx.moveTo(-0.9, -3.4); ctx.lineTo(2.7, -2.5);
+    ctx.moveTo(-1.1, -1.9); ctx.lineTo(2.6, -1.0);
     ctx.stroke();
     ctx.restore();
     ctx.restore();
@@ -300,62 +319,74 @@ window.RN = window.RN || {};
     ctx.save();
     ctx.translate(ox, oy);
     ctx.rotate(ang);
-    const side = front ? 1 : 1; // الانحناء في فضاء الذراع المحلي
-    // كم القميص: يتقوس قليلًا للخارج
-    const sg = ctx.createLinearGradient(-3, 0, 3, 8);
-    sg.addColorStop(0, front ? U.shade(o.shirt, 0.1) : U.shade(o.shirt, -0.18));
-    sg.addColorStop(1, front ? U.shade(o.shirt, -0.14) : U.shade(o.shirt, -0.32));
-    ctx.strokeStyle = sg;
-    ctx.lineWidth = 5.2; ctx.lineCap = 'round';
+    // كم واسع (قطعة ممتلئة وليست خطًا)
+    const sg = ctx.createLinearGradient(-3, 0, 3.5, 5);
+    sg.addColorStop(0, front ? U.shade(o.shirt, 0.12) : U.shade(o.shirt, -0.16));
+    sg.addColorStop(1, front ? U.shade(o.shirt, -0.12) : U.shade(o.shirt, -0.3));
+    ctx.fillStyle = sg;
     ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(0.9 * side, 3.2, 0.5 * side, 6.0);
+    ctx.moveTo(-3.0, -0.6);
+    ctx.quadraticCurveTo(-3.6, 3.4, -2.5, 6.2);
+    ctx.lineTo(2.9, 6.4);
+    ctx.quadraticCurveTo(3.9, 3.2, 3.0, -0.6);
+    ctx.quadraticCurveTo(0, -2.2, -3.0, -0.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = LINE; ctx.lineWidth = 1.1;
     ctx.stroke();
     // حافة الكم
-    ctx.strokeStyle = front ? U.alpha(U.shade(o.shirt, -0.3), 0.8) : U.alpha(U.shade(o.shirt, -0.45), 0.8);
-    ctx.lineWidth = 0.9;
-    ctx.beginPath(); ctx.moveTo(-2 + 0.5 * side, 5.9); ctx.lineTo(2.9 + 0.5 * side, 6.1); ctx.stroke();
-    // الساعد: انحناءة مرفق خفيفة تعيد اليد تحت الكتف
-    ctx.strokeStyle = front ? skinGrad(ctx, -2, 6, 2, 14) : SKIN_SHADE;
-    ctx.lineWidth = 4.0; ctx.lineCap = 'round';
+    ctx.strokeStyle = U.alpha(U.shade(o.shirt, -0.35), 0.85); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(-2.5, 6.2); ctx.lineTo(2.9, 6.4); ctx.stroke();
+    // الساعد: كتلة مدببة بانحناءة مرفق
+    const fgr = ctx.createLinearGradient(-2.5, 7, 2.5, 13);
+    fgr.addColorStop(0, front ? SKIN_HI : SKIN);
+    fgr.addColorStop(1, front ? SKIN_SHADE : SKIN_DEEP);
+    ctx.fillStyle = fgr;
     ctx.beginPath();
-    ctx.moveTo(0.5 * side, 6.3);
-    ctx.quadraticCurveTo(0.9 * side, 9.8, 0.1 * side, 12.8);
+    ctx.moveTo(-2.2, 6.3);
+    ctx.quadraticCurveTo(-2.4, 9.6, -1.7, 12.2);
+    ctx.quadraticCurveTo(0.1, 13.2, 1.9, 12.2);
+    ctx.quadraticCurveTo(2.8, 9.6, 2.5, 6.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = LINE; ctx.lineWidth = 1.05;
     ctx.stroke();
-    // اليد: بيضاوية عمودية بإبهام مدمج وخطي أصابع (تشير للأسفل)
+    // قفاز اليد: كرة كبيرة بإبهام مدمج (أسلوب أبطال المنصات)
     ctx.save();
-    ctx.translate(0.1 * side, 14.3);
-    const hg = ctx.createRadialGradient(-0.6, -0.9, 0.4, 0, 0.2, 3.0);
-    hg.addColorStop(0, front ? SKIN_HI : SKIN);
-    hg.addColorStop(1, front ? SKIN : SKIN_SHADE);
-    // الإبهام نحو الجسم (يندمج بالكف)
-    const thx = front ? -1.55 : 1.55;
-    ctx.fillStyle = hg;
-    ctx.beginPath(); ctx.ellipse(thx, -0.5, 0.8, 1.35, front ? -0.35 : 0.35, 0, 7); ctx.fill();
-    ctx.strokeStyle = LINE; ctx.lineWidth = 0.6;
-    ctx.beginPath(); ctx.ellipse(thx, -0.5, 0.8, 1.35, front ? -0.35 : 0.35, 0, 7); ctx.stroke();
-    // الكف عمودية (أطول من عرضها)
-    ctx.fillStyle = hg;
-    ctx.beginPath(); ctx.ellipse(0, 0.3, 1.95, 2.5, 0, 0, 7); ctx.fill();
-    ctx.strokeStyle = LINE; ctx.lineWidth = 0.7;
-    ctx.beginPath(); ctx.ellipse(0, 0.3, 1.95, 2.5, 0, 0, 7); ctx.stroke();
-    // خطا أصابع
-    ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.5); ctx.lineWidth = 0.5;
+    ctx.translate(0.1, 15.0);
+    const hgg = ctx.createRadialGradient(-0.9, -1.0, 0.5, 0, 0.2, 3.6);
+    hgg.addColorStop(0, front ? SKIN_HI : SKIN);
+    hgg.addColorStop(1, front ? U.shade(SKIN, -0.06) : SKIN_SHADE);
+    // الإبهام
+    const thx = front ? -2.2 : 2.2;
+    ctx.fillStyle = hgg;
+    ctx.beginPath(); ctx.ellipse(thx, -0.8, 1.05, 1.6, front ? -0.4 : 0.4, 0, 7); ctx.fill();
+    ctx.strokeStyle = LINE; ctx.lineWidth = 0.95;
+    ctx.beginPath(); ctx.ellipse(thx, -0.8, 1.05, 1.6, front ? -0.4 : 0.4, 0, 7); ctx.stroke();
+    // الكف: مستديرة كبيرة
+    ctx.fillStyle = hgg;
+    ctx.beginPath(); ctx.arc(0, 0.2, 2.75, 0, 7); ctx.fill();
+    ctx.strokeStyle = LINE; ctx.lineWidth = 1.05;
+    ctx.beginPath(); ctx.arc(0, 0.2, 2.75, 0, 7); ctx.stroke();
+    // ثنية أصابع واحدة ناعمة
+    ctx.strokeStyle = U.alpha(SKIN_DEEP, 0.5); ctx.lineWidth = 0.6;
     ctx.beginPath();
-    ctx.moveTo(-0.62, 2.55); ctx.lineTo(-0.62, 1.2);
-    ctx.moveTo(0.62, 2.6); ctx.lineTo(0.62, 1.25);
+    ctx.moveTo(-1.1, 2.35); ctx.quadraticCurveTo(0, 2.9, 1.1, 2.35);
     ctx.stroke();
+    // لمعة
+    ctx.fillStyle = 'rgba(255,235,205,0.55)';
+    ctx.beginPath(); ctx.ellipse(-0.9, -1.0, 1.0, 0.7, -0.5, 0, 7); ctx.fill();
     ctx.restore();
     // شفرة الطاقة عند الهجوم
     if (front && p.armPose === 'swing') {
       ctx.globalCompositeOperation = 'screen';
-      const grad = ctx.createLinearGradient(0, 15, 0, 45);
+      const grad = ctx.createLinearGradient(0, 16, 0, 46);
       grad.addColorStop(0, fx && fx.power2x ? 'rgba(255,90,138,0.95)' : 'rgba(90,216,255,0.95)');
       grad.addColorStop(1, 'rgba(90,216,255,0)');
       ctx.strokeStyle = grad; ctx.lineWidth = 8;
-      ctx.beginPath(); ctx.moveTo(0, 16); ctx.lineTo(0, 43); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0.1, 17); ctx.lineTo(0.1, 44); ctx.stroke();
       ctx.strokeStyle = 'rgba(255,255,255,0.95)'; ctx.lineWidth = 2.5;
-      ctx.beginPath(); ctx.moveTo(0, 16); ctx.lineTo(0, 38); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0.1, 17); ctx.lineTo(0.1, 39); ctx.stroke();
       ctx.globalCompositeOperation = 'source-over';
     }
     ctx.restore();
