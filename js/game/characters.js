@@ -25,13 +25,14 @@ window.RN = window.RN || {};
   const NAYA_HAIR_HI = '#5c4128';
 
   // ---- أحجام الشخصيات ----
-  // نايا هي المقياس الأساسي، وريان أطول (وأكبر) منها بنسبة 50% على الطول.
-  // ملاحظة: رسمة نايا الداخلية أعلى قليلًا من ريان (شعر مجعّد + فيونكة +
-  // فستان منفوش)، لذا نعوّض بنسبة الارتفاع الداخلي المقيسة كي يصبح طول
-  // ريان الظاهر أكبر من نايا بنسبة 50% بالضبط.
+  // نايا هي المقياس الأساسي. كان ريان أطول من نايا بنسبة 50% على الطول
+  // (مع تعويض فرق الارتفاع الداخلي عبر CHAR_HEIGHT_RATIO)، ثم أصبح أقصر
+  // بنسبة 20% (× 0.8) وأنحف. RAYAN_SCALE هو مقياس الطول (الرأسي)، أما
+  // RAYAN_SLIM فهو معامل النحافة الأفقي (أقل من 1 = أنحف).
   const NAYA_SCALE = 1.15;
   const CHAR_HEIGHT_RATIO = 65.5 / 62; // ارتفاع نايا الداخلي ÷ ارتفاع ريان الداخلي
-  const RAYAN_SCALE = NAYA_SCALE * 1.5 * CHAR_HEIGHT_RATIO; // ≈ 1.822 — أطول من نايا 50% ظاهريًا
+  const RAYAN_SCALE = NAYA_SCALE * 1.5 * CHAR_HEIGHT_RATIO * 0.8; // ≈ 1.458 — الطول بعد التقصير 20%
+  const RAYAN_SLIM = 0.8; // العرض = الطول × 0.8 (أنحف بنسبة 20%)
 
   function skinGrad(ctx, x0, y0, x1, y1) {
     const g = ctx.createLinearGradient(x0, y0, x1, y1);
@@ -122,10 +123,11 @@ window.RN = window.RN || {};
     const p = rayanPose(state, t);
     const o = outfit || RN.C.OUTFITS.explorer;
     fx = fx || {};
-    const scale = fx.scale || RAYAN_SCALE;
+    const scaleY = fx.scale || RAYAN_SCALE;          // الطول (المقياس الرأسي)
+    const scaleX = fx.scaleX || scaleY * RAYAN_SLIM; // العرض (أنحف)
     ctx.save();
-    ctx.translate(x, y + (p.bob || 0) * scale);
-    ctx.scale(facing * scale, scale);
+    ctx.translate(x, y + (p.bob || 0) * scaleY);
+    ctx.scale(facing * scaleX, scaleY);
     ctx.rotate(p.lean || 0);
     ctx.translate(0, p.crouch * 12);
 
