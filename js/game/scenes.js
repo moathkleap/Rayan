@@ -46,9 +46,13 @@ window.RN = window.RN || {};
       }
 
       // الشخصيتان — ينظر كل منهما للآخر
+      // ريان أطول من نايا بنسبة 50% (زيادة على الطول). النسبة RAYAN_SCALE/NAYA_SCALE
+      // تُغلّف مضاعِف الـ50% وتعويض فرق الارتفاع الداخلي بين الشخصيتين.
+      const nayaTitleScale = 1.5;
+      const rayanTitleScale = nayaTitleScale * (RN.Chars.RAYAN_SCALE / RN.Chars.NAYA_SCALE);
       RN.Chars.drawRayan(ctx, RN.VW / 2 - 190, RN.VH - 74, 'idle', this.t, 1,
-        RN.C.OUTFITS[RN.Save.data.outfit || 'explorer'], { scale: 1.55, lookX: 1 });
-      RN.Chars.drawNaya(ctx, RN.VW / 2 + 190, RN.VH - 74, 'wave', this.t, -1, 'princess', 1.5, 0.9);
+        RN.C.OUTFITS[RN.Save.data.outfit || 'explorer'], { scale: rayanTitleScale, lookX: 1 });
+      RN.Chars.drawNaya(ctx, RN.VW / 2 + 190, RN.VH - 74, 'wave', this.t, -1, 'princess', nayaTitleScale, 0.9);
 
       // فراشات ترفرف
       for (const b of this.butterflies) {
