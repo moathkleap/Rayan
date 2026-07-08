@@ -209,7 +209,7 @@ window.RN = window.RN || {};
         const walkT = Math.min(1, st / 5.2);
         const wx = U.lerp(-70, W * 0.58, walkT);
         const state = walkT < 1 ? 'walk' : 'idle';
-        RN.Chars.drawRayan(ctx, wx, H - 92, state, this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.7, lookX: 0.8 });
+        RN.Chars.drawRayan(ctx, wx, H - 92, state, this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.6 * RN.Chars.RAYAN_TO_NAYA, lookX: 0.8 });
         RN.Chars.drawNaya(ctx, wx - 78, H - 90, walkT < 1 ? 'walk' : 'idle', this.t + 0.3, 1, 'princess', 1.6, 0.8);
         // غبار خطوات
         if (walkT < 1 && Math.floor(this.t * 6) % 2 === 0) {
@@ -250,7 +250,7 @@ window.RN = window.RN || {};
         // يقتربان ثم يتأملان
         const wt = Math.min(1, st / 3.2);
         const rx = U.lerp(-60, W * 0.42, wt);
-        RN.Chars.drawRayan(ctx, rx, H - 104, wt < 1 ? 'walk' : 'idle', this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.7, lookX: 1 });
+        RN.Chars.drawRayan(ctx, rx, H - 104, wt < 1 ? 'walk' : 'idle', this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.6 * RN.Chars.RAYAN_TO_NAYA, lookX: 1 });
         RN.Chars.drawNaya(ctx, rx - 72, H - 102, wt < 1 ? 'walk' : 'think', this.t + 0.3, 1, 'princess', 1.6, 1);
       } else if (slide === 2) {
         /* ===== الخطف الديناميكي ===== */
@@ -373,7 +373,7 @@ window.RN = window.RN || {};
         // رسم نايا (على الأرض أو محمولة داخل كرة طاقة)
         if (nayaHeld && kingVisible) {
           const orbX = kingX - 26 * kingScale, orbY = kingY - 46 * kingScale;
-          RN.Chars.drawNaya(ctx, orbX, orbY + 34 * kingScale, 'worried', this.t, -1, 'princess', 1.15 * kingScale, -0.8);
+          RN.Chars.drawNaya(ctx, orbX, orbY + 34 * kingScale, 'worried', this.t, -1, 'princess', RN.Chars.NAYA_SCALE * kingScale, -0.8);
           ctx.strokeStyle = 'rgba(190,120,255,0.85)';
           ctx.lineWidth = 3;
           ctx.beginPath(); ctx.ellipse(orbX, orbY, 40 * kingScale, 52 * kingScale, 0, 0, 7); ctx.stroke();
@@ -390,7 +390,7 @@ window.RN = window.RN || {};
           RN.Chars.drawShadowKing(ctx, kingX, kingY, this.t, 1.35 * kingScale);
         }
         // ريان
-        RN.Chars.drawRayan(ctx, rayanX, H - 104, rayanState, this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.7, lookX: 1, lookY: st > 3.6 && st < 6.8 ? -0.8 : 0 });
+        RN.Chars.drawRayan(ctx, rayanX, H - 104, rayanState, this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.6 * RN.Chars.RAYAN_TO_NAYA, lookX: 1, lookY: st > 3.6 && st < 6.8 ? -0.8 : 0 });
         // صرخة نايا عند الإمساك
         if (st > 3.6 && st < 5.2) {
           ctx.fillStyle = '#ffffff';
@@ -424,7 +424,7 @@ window.RN = window.RN || {};
         const runX = U.lerp(-60, W + 80, st / this.durs[3]);
         ctx.fillStyle = 'rgba(120,90,200,0.25)';
         ctx.beginPath(); ctx.ellipse(runX, H - 60, 40, 8, 0, 0, 7); ctx.fill();
-        RN.Chars.drawRayan(ctx, runX, H - 70, 'run', this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.7, lookX: 1 });
+        RN.Chars.drawRayan(ctx, runX, H - 70, 'run', this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.6 * RN.Chars.RAYAN_TO_NAYA, lookX: 1 });
       }
 
       this.letterbox(ctx);
@@ -584,7 +584,7 @@ window.RN = window.RN || {};
       ctx.fillRect(0, RN.VH - 110, RN.VW, 110);
       // الشخصيتان معًا
       RN.Chars.drawRayan(ctx, RN.VW / 2 - 55, RN.VH - 120, 'celebrate', this.t, 1, RN.C.OUTFITS.explorer, {});
-      RN.Chars.drawNaya(ctx, RN.VW / 2 + 45, RN.VH - 120, 'cheer', this.t, -1, 'princess', 1.15);
+      RN.Chars.drawNaya(ctx, RN.VW / 2 + 45, RN.VH - 120, 'cheer', this.t, -1, 'princess', RN.Chars.NAYA_SCALE);
       // قلوب صغيرة
       for (let i = 0; i < 3; i++) {
         const a = this.t * 1.5 + i * 2;
@@ -625,7 +625,7 @@ window.RN = window.RN || {};
         }
         const run = Math.min(1, t / 3);
         RN.Chars.drawRayan(ctx, U.lerp(150, RN.VW / 2 - 35, run), RN.VH - 100, t < 3 ? 'run' : 'celebrate', t, 1, RN.C.OUTFITS[RN.Save.data.outfit], {});
-        RN.Chars.drawNaya(ctx, U.lerp(RN.VW - 150, RN.VW / 2 + 35, run), RN.VH - 100, t < 3 ? 'walk' : 'cheer', t, -1, RN.Save.data.nayaOutfit, 1.15);
+        RN.Chars.drawNaya(ctx, U.lerp(RN.VW - 150, RN.VW / 2 + 35, run), RN.VH - 100, t < 3 ? 'walk' : 'cheer', t, -1, RN.Save.data.nayaOutfit, RN.Chars.NAYA_SCALE);
         if (t > 3.5) {
           for (let i = 0; i < 5; i++) {
             const a = t * 2 + i * 1.3;
@@ -661,7 +661,7 @@ window.RN = window.RN || {};
         ctx.fillStyle = '#58b24d';
         ctx.fillRect(0, RN.VH - 90, RN.VW, 90);
         RN.Chars.drawRayan(ctx, RN.VW / 2 - 40, RN.VH - 100, 'idle', t, 1, RN.C.OUTFITS[RN.Save.data.outfit], {});
-        RN.Chars.drawNaya(ctx, RN.VW / 2 + 30, RN.VH - 100, 'think', t, 1, RN.Save.data.nayaOutfit, 1.15);
+        RN.Chars.drawNaya(ctx, RN.VW / 2 + 30, RN.VH - 100, 'think', t, 1, RN.Save.data.nayaOutfit, RN.Chars.NAYA_SCALE);
         if (ft > 5) {
           ctx.fillStyle = `rgba(255,215,0,${Math.min(1, (ft - 5) / 1.5)})`;
           ctx.font = `bold ${RN.UI.fontPx(26)}px sans-serif`;

@@ -268,14 +268,17 @@ window.RN = window.RN || {};
         if (this.attacking) {
           const dmg = (this.powerups.power2x > 0 ? 2 : 1) * (this.powerups.lightning > 0 ? 2 : 1);
           const hb = { x: this.x + this.w / 2 + (this.facing > 0 ? 2 : -44), y: this.y - 4, w: 42, h: this.h + 8 };
+          // صندوق ضرر ممتد للأعلى للأعداء فقط: قوس السيف المرئي يصل فوق صندوق
+          // الفيزياء (الشخصية مرسومة أطول منه)، بينما يبقى كسر البلاطات على hb.
+          const swingHb = { x: hb.x, y: this.y - 26, w: hb.w, h: this.h + 30 };
           for (const e of scene.enemies) {
-            if (!e.dead && !e._hitBySwing && U.aabb(hb, e.box())) {
+            if (!e.dead && !e._hitBySwing && U.aabb(swingHb, e.box())) {
               e._hitBySwing = true;
               e.hurt(scene, dmg, this.facing, false);
               if (this.powerups.freeze > 0) e.frozen = 2.5;
             }
           }
-          if (scene.boss && !scene.boss.dead && U.aabb(hb, scene.boss.hitbox())) {
+          if (scene.boss && !scene.boss.dead && U.aabb(swingHb, scene.boss.hitbox())) {
             if (!scene.boss._hitBySwing) {
               scene.boss._hitBySwing = true;
               scene.boss.hurt(scene, dmg);
@@ -450,16 +453,18 @@ window.RN = window.RN || {};
       // مظلة الانزلاق
       if (this.gliding) {
         const px = this.x + this.w / 2 - camX, py = this.y - camY;
+        // المظلة مرفوعة فوق قمة الرأس (الرأس يصل حتى ~py-44 بالمقياس الحالي)
+        // والأحزمة تنزل إلى اليدين المرفوعتين في وضعية الانزلاق (~py-28).
         ctx.fillStyle = '#e8862a';
         ctx.beginPath();
-        ctx.arc(px, py - 20, 26, Math.PI, 0);
+        ctx.arc(px, py - 52, 26, Math.PI, 0);
         ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#f4f1e8';
-        ctx.beginPath(); ctx.arc(px, py - 20, 26, Math.PI * 1.25, Math.PI * 1.55); ctx.lineTo(px, py - 20); ctx.closePath(); ctx.fill();
+        ctx.beginPath(); ctx.arc(px, py - 52, 26, Math.PI * 1.25, Math.PI * 1.55); ctx.lineTo(px, py - 52); ctx.closePath(); ctx.fill();
         ctx.strokeStyle = '#8a6a4a'; ctx.lineWidth = 1.5;
         ctx.beginPath();
-        ctx.moveTo(px - 24, py - 18); ctx.lineTo(px - 6, py + 6);
-        ctx.moveTo(px + 24, py - 18); ctx.lineTo(px + 6, py + 6);
+        ctx.moveTo(px - 24, py - 50); ctx.lineTo(px - 15, py - 28);
+        ctx.moveTo(px + 24, py - 50); ctx.lineTo(px + 15, py - 28);
         ctx.stroke();
       }
     }
