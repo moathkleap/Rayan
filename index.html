@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#06070f">
+  <meta name="description" content="ريان ونايا — مغامرة العوالم الستة: لعبة منصات ومغامرات عربية أصلية">
+  <title>ريان ونايا — Rayan &amp; Naya</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <!-- شاشة تحميل -->
+  <div id="loader">
+    <div class="loader-title">ريان ونايا</div>
+    <div class="loader-sub">جارٍ التحميل...</div>
+  </div>
+
+  <!-- أزرار اللمس -->
+  <div id="touch">
+    <div class="pad left-pad">
+      <button class="tbtn" data-action="left">◀</button>
+      <button class="tbtn" data-action="right">▶</button>
+      <button class="tbtn small" data-action="down">▼</button>
+    </div>
+    <div class="pad right-pad">
+      <button class="tbtn small alt" data-action="timeSlow">⏳</button>
+      <button class="tbtn small alt" data-action="shot">✦</button>
+      <button class="tbtn action attack" data-action="attack">⚔</button>
+      <button class="tbtn action dash" data-action="dash">➤</button>
+      <button class="tbtn action jump" data-action="jump">⬆</button>
+    </div>
+  </div>
+
+  <!-- الأنظمة الأساسية -->
+  <script src="js/core/utils.js"></script>
+  <script src="js/core/i18n.js"></script>
+  <script src="js/core/input.js"></script>
+  <script src="js/core/audio.js"></script>
+  <script src="js/core/save.js"></script>
+  <script src="js/core/engine.js"></script>
+  <!-- أنظمة اللعبة -->
+  <script src="js/game/config.js"></script>
+  <script src="js/game/physics.js"></script>
+  <script src="js/game/textures.js"></script>
+  <script src="js/game/characters.js"></script>
+  <script src="js/game/particles.js"></script>
+  <script src="js/game/background.js"></script>
+  <script src="js/game/levelgen.js"></script>
+  <script src="js/game/entities.js"></script>
+  <script src="js/game/enemies.js"></script>
+  <script src="js/game/bosses.js"></script>
+  <script src="js/game/player.js"></script>
+  <script src="js/game/achievements.js"></script>
+  <script src="js/game/hud.js"></script>
+  <script src="js/game/cinematics.js"></script>
+  <script src="js/game/levelscene.js"></script>
+  <script src="js/game/scenes.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>
