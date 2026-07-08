@@ -88,92 +88,347 @@ window.RN = window.RN || {};
     }
   }
 
-  /* ---------- مقدمة القصة ---------- */
+  /* ---------- مقدمة القصة (سينمائية متحركة) ---------- */
   class IntroScene extends BaseCine {
     constructor(done) {
       super(done);
-      this.duration = 26;
-      this.slides = RN.I18N.lang === 'ar' ? [
+      // مدد المشاهد: القرية، الأطلال، الخطف الديناميكي، العوالم
+      this.durs = [6.5, 6, 9.5, 6];
+      this.duration = this.durs.reduce((a, b) => a + b, 0);
+      // غيوم متحركة مشتركة
+      this.clouds = [];
+      const rng = U.rng(314);
+      for (let i = 0; i < 7; i++) {
+        this.clouds.push({ x: rng() * (RN.VW + 400), y: 25 + rng() * 140, w: 90 + rng() * 130, sp: 10 + rng() * 14, a: 0.45 + rng() * 0.35 });
+      }
+      this.birds = [];
+      for (let i = 0; i < 3; i++) this.birds.push({ y: 60 + rng() * 90, sp: 30 + rng() * 20, ph: rng() * 7 });
+      this.texts = RN.I18N.lang === 'ar' ? [
         'في قرية هادئة عند أطراف التلال، عاش ريان مع أخته الصغيرة نايا...',
         'في يومٍ مشمس، اكتشفا أطلالًا قديمة... وبوابة مختومة منذ آلاف السنين.',
-        'انفتحت البوابة! وخرج منها ملك الظلال... وخطف نايا في لمح البصر!',
+        'انفتحت البوابة! وخرج منها ملك الظلال...',
         'انقسم العالم إلى ستة عوالم... وبدأت رحلة ريان لإنقاذ أخته.',
       ] : [
         'In a quiet village by the hills, Rayan lived with his little sister Naya...',
         'One sunny day they found ancient ruins... and a gate sealed for millennia.',
-        'The gate burst open! The Shadow King emerged... and took Naya!',
+        'The gate burst open! The Shadow King emerged...',
         'The world split into six realms... and Rayan\'s journey began.',
       ];
     }
-    update(dt) { super.update(dt); }
-    render(ctx) {
-      const slide = Math.min(3, Math.floor(this.t / 6.5));
-      const st = this.t - slide * 6.5;
-      // خلفيات
-      if (slide === 0) {
-        const g = ctx.createLinearGradient(0, 0, 0, RN.VH);
-        g.addColorStop(0, '#8fd0e8'); g.addColorStop(1, '#d8f0c8');
-        ctx.fillStyle = g; ctx.fillRect(0, 0, RN.VW, RN.VH);
-        // بيوت قرية
-        for (let i = 0; i < 5; i++) {
-          const hx = 120 + i * 170, hy = RN.VH - 150;
-          ctx.fillStyle = '#e8d8b8'; ctx.fillRect(hx, hy, 90, 70);
-          ctx.fillStyle = '#b85a3a';
-          ctx.beginPath(); ctx.moveTo(hx - 10, hy); ctx.lineTo(hx + 45, hy - 45); ctx.lineTo(hx + 100, hy); ctx.closePath(); ctx.fill();
+
+    _slide() {
+      let t = this.t;
+      for (let i = 0; i < this.durs.length; i++) {
+        if (t < this.durs[i]) return [i, t];
+        t -= this.durs[i];
+      }
+      return [3, this.durs[3]];
+    }
+
+    // سماء متدرجة + غيوم منجرفة + طيور (لكل المشاهد)
+    _movingSky(ctx, top, bottom, cloudTint, speedMul, dark) {
+      const g = ctx.createLinearGradient(0, 0, 0, RN.VH);
+      g.addColorStop(0, top); g.addColorStop(1, bottom);
+      ctx.fillStyle = g;
+      ctx.fillRect(0, 0, RN.VW, RN.VH);
+      // شمس (إلا في الظلام)
+      if (!dark) {
+        const sx = RN.VW - 180, sy = 100;
+        const halo = ctx.createRadialGradient(sx, sy, 8, sx, sy, 150);
+        halo.addColorStop(0, 'rgba(255,250,220,0.9)');
+        halo.addColorStop(1, 'rgba(255,240,180,0)');
+        ctx.fillStyle = halo;
+        ctx.fillRect(sx - 150, sy - 150, 300, 300);
+      }
+      for (const c of this.clouds) {
+        const cx = ((c.x + this.t * c.sp * speedMul) % (RN.VW + 460)) - 230;
+        ctx.globalAlpha = c.a;
+        ctx.fillStyle = cloudTint;
+        ctx.beginPath();
+        ctx.ellipse(cx, c.y, c.w * 0.5, c.w * 0.16, 0, 0, 7);
+        ctx.ellipse(cx - c.w * 0.24, c.y - c.w * 0.06, c.w * 0.27, c.w * 0.13, 0, 0, 7);
+        ctx.ellipse(cx + c.w * 0.2, c.y - c.w * 0.08, c.w * 0.3, c.w * 0.15, 0, 0, 7);
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+      if (!dark) {
+        for (const b of this.birds) {
+          const bx = ((b.sp * this.t + b.ph * 200) % (RN.VW + 160)) - 80;
+          const by = b.y + Math.sin(this.t * 1.5 + b.ph) * 8;
+          const flap = Math.sin(this.t * 8 + b.ph) * 4;
+          ctx.strokeStyle = 'rgba(40,50,70,0.55)';
+          ctx.lineWidth = 2; ctx.lineCap = 'round';
+          ctx.beginPath();
+          ctx.moveTo(bx - 7, by - flap);
+          ctx.quadraticCurveTo(bx, by + 2, bx + 7, by - flap);
+          ctx.stroke();
         }
-        ctx.fillStyle = '#7ab85a'; ctx.fillRect(0, RN.VH - 80, RN.VW, 80);
-        RN.Chars.drawRayan(ctx, RN.VW / 2 - 40, RN.VH - 90, 'walk', this.t, 1, RN.C.OUTFITS.explorer, {});
-        RN.Chars.drawNaya(ctx, RN.VW / 2 + 30, RN.VH - 90, 'walk', this.t, 1);
+      }
+    }
+
+    render(ctx) {
+      const [slide, st] = this._slide();
+      const W = RN.VW, H = RN.VH;
+
+      if (slide === 0) {
+        /* ===== القرية: يمشيان فعليًا عبر الشاشة ===== */
+        this._movingSky(ctx, '#8fd0e8', '#d8f0c8', '#ffffff', 1);
+        // تلال بعيدة
+        ctx.fillStyle = '#a8d49a';
+        ctx.beginPath();
+        ctx.moveTo(0, H - 160);
+        for (let x = 0; x <= W; x += 60) ctx.lineTo(x, H - 160 - Math.sin(x * 0.01) * 26);
+        ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath(); ctx.fill();
+        // بيوت القرية
+        for (let i = 0; i < 5; i++) {
+          const hx = 90 + i * 180, hy = H - 152;
+          ctx.fillStyle = '#f0e2c4'; ctx.fillRect(hx, hy, 92, 72);
+          ctx.strokeStyle = 'rgba(90,60,30,0.4)'; ctx.lineWidth = 2;
+          ctx.strokeRect(hx, hy, 92, 72);
+          ctx.fillStyle = '#b85a3a';
+          ctx.beginPath(); ctx.moveTo(hx - 12, hy); ctx.lineTo(hx + 46, hy - 48); ctx.lineTo(hx + 104, hy); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = '#7ab8d8';
+          ctx.fillRect(hx + 14, hy + 18, 20, 20);
+          ctx.fillRect(hx + 58, hy + 18, 20, 20);
+          ctx.fillStyle = '#8a5a30';
+          ctx.fillRect(hx + 38, hy + 34, 18, 38);
+          // دخان مدخنة
+          for (let k = 0; k < 3; k++) {
+            const sm = (this.t * 0.3 + k * 0.33 + i * 0.2) % 1;
+            ctx.fillStyle = 'rgba(255,255,255,' + (0.35 * (1 - sm)) + ')';
+            ctx.beginPath(); ctx.arc(hx + 80 + Math.sin(sm * 5 + i) * 8, hy - 50 - sm * 44, 5 + sm * 9, 0, 7); ctx.fill();
+          }
+        }
+        // أرض
+        ctx.fillStyle = '#7ab85a'; ctx.fillRect(0, H - 84, W, 84);
+        ctx.fillStyle = '#8fca6d'; ctx.fillRect(0, H - 84, W, 10);
+        // ممشى ترابي
+        ctx.fillStyle = 'rgba(190,160,110,0.65)';
+        ctx.beginPath(); ctx.ellipse(W / 2, H - 40, W * 0.55, 26, 0, 0, 7); ctx.fill();
+        // *** المشي الحقيقي: ينتقلان من اليسار إلى وسط الشاشة ***
+        const walkT = Math.min(1, st / 5.2);
+        const wx = U.lerp(-70, W * 0.58, walkT);
+        const state = walkT < 1 ? 'walk' : 'idle';
+        RN.Chars.drawRayan(ctx, wx, H - 92, state, this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.7, lookX: 0.8 });
+        RN.Chars.drawNaya(ctx, wx - 78, H - 90, walkT < 1 ? 'walk' : 'idle', this.t + 0.3, 1, 'princess', 1.6, 0.8);
+        // غبار خطوات
+        if (walkT < 1 && Math.floor(this.t * 6) % 2 === 0) {
+          ctx.fillStyle = 'rgba(180,160,120,0.4)';
+          ctx.beginPath(); ctx.arc(wx - 24 + Math.sin(this.t * 9) * 6, H - 88, 3.5, 0, 7); ctx.fill();
+        }
       } else if (slide === 1) {
-        const g = ctx.createLinearGradient(0, 0, 0, RN.VH);
-        g.addColorStop(0, '#c8a86a'); g.addColorStop(1, '#8a6a4a');
-        ctx.fillStyle = g; ctx.fillRect(0, 0, RN.VW, RN.VH);
+        /* ===== الأطلال: يقتربان من البوابة ===== */
+        this._movingSky(ctx, '#d8b070', '#f4e0b8', 'rgba(255,246,220,0.9)', 1);
         // أعمدة أطلال
         for (let i = 0; i < 4; i++) {
-          ctx.fillStyle = '#a89878';
-          ctx.fillRect(150 + i * 190, RN.VH - 260 + (i % 2) * 40, 40, 200);
+          const px = 130 + i * 200, ph = 190 + (i % 2) * 44;
+          ctx.fillStyle = i % 2 ? '#b3a382' : '#a89878';
+          ctx.fillRect(px, H - 90 - ph, 42, ph);
+          ctx.fillStyle = 'rgba(120,100,70,0.5)';
+          ctx.fillRect(px, H - 90 - ph, 10, ph);
+          ctx.fillStyle = '#8f8066';
+          ctx.fillRect(px - 8, H - 90 - ph - 14, 58, 16);
         }
-        // بوابة
-        ctx.strokeStyle = '#5a4a6a'; ctx.lineWidth = 14;
-        ctx.beginPath(); ctx.ellipse(RN.VW / 2, RN.VH - 200, 80, 110, 0, 0, 7); ctx.stroke();
-        ctx.fillStyle = 'rgba(60,30,90,0.5)';
-        ctx.beginPath(); ctx.ellipse(RN.VW / 2, RN.VH - 200, 72, 102, 0, 0, 7); ctx.fill();
-        ctx.fillStyle = '#8a6a4a'; ctx.fillRect(0, RN.VH - 90, RN.VW, 90);
-        RN.Chars.drawRayan(ctx, RN.VW / 2 - 150, RN.VH - 100, 'idle', this.t, 1, RN.C.OUTFITS.explorer, {});
-        RN.Chars.drawNaya(ctx, RN.VW / 2 - 100, RN.VH - 100, 'think', this.t, 1);
+        // البوابة تنبض
+        const gx = W * 0.72, gy = H - 210;
+        const pulse = 1 + Math.sin(this.t * 2.2) * 0.03;
+        ctx.strokeStyle = '#5a4a6a'; ctx.lineWidth = 15;
+        ctx.beginPath(); ctx.ellipse(gx, gy, 82 * pulse, 112 * pulse, 0, 0, 7); ctx.stroke();
+        const gg = ctx.createRadialGradient(gx, gy, 8, gx, gy, 95);
+        gg.addColorStop(0, 'rgba(120,60,180,' + (0.35 + Math.sin(this.t * 2.2) * 0.12) + ')');
+        gg.addColorStop(1, 'rgba(60,30,90,0.45)');
+        ctx.fillStyle = gg;
+        ctx.beginPath(); ctx.ellipse(gx, gy, 74 * pulse, 104 * pulse, 0, 0, 7); ctx.fill();
+        // رموز متوهجة تدور
+        for (let k = 0; k < 5; k++) {
+          const a = this.t * 0.8 + k * 1.256;
+          ctx.fillStyle = 'rgba(200,150,255,0.8)';
+          ctx.beginPath(); ctx.arc(gx + Math.cos(a) * 82, gy + Math.sin(a) * 112, 3.5, 0, 7); ctx.fill();
+        }
+        ctx.fillStyle = '#9a8768'; ctx.fillRect(0, H - 96, W, 96);
+        ctx.fillStyle = '#ac9878'; ctx.fillRect(0, H - 96, W, 10);
+        // يقتربان ثم يتأملان
+        const wt = Math.min(1, st / 3.2);
+        const rx = U.lerp(-60, W * 0.42, wt);
+        RN.Chars.drawRayan(ctx, rx, H - 104, wt < 1 ? 'walk' : 'idle', this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.7, lookX: 1 });
+        RN.Chars.drawNaya(ctx, rx - 72, H - 102, wt < 1 ? 'walk' : 'think', this.t + 0.3, 1, 'princess', 1.6, 1);
       } else if (slide === 2) {
-        ctx.fillStyle = '#140a24'; ctx.fillRect(0, 0, RN.VW, RN.VH);
-        // انفجار البوابة
-        const burst = Math.min(1, st / 1.5);
-        const rg = ctx.createRadialGradient(RN.VW / 2, RN.VH / 2, 10, RN.VW / 2, RN.VH / 2, 300 * burst + 50);
-        rg.addColorStop(0, 'rgba(180,80,255,0.9)');
-        rg.addColorStop(1, 'rgba(60,20,120,0)');
-        ctx.fillStyle = rg; ctx.fillRect(0, 0, RN.VW, RN.VH);
-        RN.Chars.drawShadowKing(ctx, RN.VW / 2, RN.VH / 2 + 100, this.t, 1.5);
-        // نايا مخطوفة
-        const ny = RN.VH / 2 - 40 - st * 12;
-        RN.Chars.drawNaya(ctx, RN.VW / 2 + 90, ny, 'worried', this.t, -1, 'princess', 0.9);
-        ctx.strokeStyle = 'rgba(160,90,255,0.7)'; ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.ellipse(RN.VW / 2 + 90, ny - 30, 34, 48, 0, 0, 7); ctx.stroke();
-        RN.Chars.drawRayan(ctx, 150, RN.VH - 100, 'hurt', this.t, 1, RN.C.OUTFITS.explorer, {});
-        ctx.fillStyle = '#241a34'; ctx.fillRect(0, RN.VH - 90, RN.VW, 90);
+        /* ===== الخطف الديناميكي ===== */
+        // سماء تُظلم تدريجيًا وغيوم داكنة مسرعة
+        const darkT = Math.min(1, st / 1.4);
+        this._movingSky(ctx,
+          U.mix('#d8b070', '#171029', darkT),
+          U.mix('#f4e0b8', '#332050', darkT),
+          darkT > 0.5 ? '#3a2a55' : '#cbb89a', 3.2, darkT > 0.6);
+        // برق خاطف
+        if (st > 0.8 && Math.sin(this.t * 9) > 0.93) {
+          ctx.fillStyle = 'rgba(220,190,255,0.28)';
+          ctx.fillRect(0, 0, W, H);
+        }
+        // الأطلال والبوابة (منفجرة)
+        const gx = W * 0.72, gy = H - 230;
+        for (let i = 0; i < 4; i++) {
+          const px = 130 + i * 200, ph = 190 + (i % 2) * 44;
+          ctx.fillStyle = U.mix('#a89878', '#3a3050', darkT);
+          ctx.fillRect(px, H - 90 - ph, 42, ph);
+        }
+        ctx.fillStyle = U.mix('#9a8768', '#2c2440', darkT);
+        ctx.fillRect(0, H - 96, W, 96);
+        // فتح البوابة: انفجار ضوئي
+        const burst = U.clamp((st - 0.4) / 0.9, 0, 1);
+        const rg = ctx.createRadialGradient(gx, gy, 10, gx, gy, 130 + burst * 220);
+        rg.addColorStop(0, 'rgba(190,90,255,' + (0.85 * Math.max(0.35, 1 - burst * 0.5)) + ')');
+        rg.addColorStop(1, 'rgba(90,30,150,0)');
+        ctx.fillStyle = rg;
+        ctx.fillRect(0, 0, W, H);
+        ctx.strokeStyle = 'rgba(200,140,255,0.9)'; ctx.lineWidth = 10;
+        ctx.beginPath(); ctx.ellipse(gx, gy, 80, 110, 0, 0, 7); ctx.stroke();
+        // دوامة داخل البوابة
+        for (let k = 0; k < 4; k++) {
+          const a = this.t * 3 + k * 1.57;
+          ctx.strokeStyle = 'rgba(230,190,255,0.5)';
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.ellipse(gx, gy, 30 + k * 12, 45 + k * 16, a * 0.35, a, a + 2.2);
+          ctx.stroke();
+        }
+
+        /* خط زمني: 1.4 نزول الشرير | 2.6 انقضاض | 3.6 إمساك |
+           5.6 صعود بها | 6.6 اختفاء | البقية: ريان وحده */
+        // مواقع
+        const nayaGroundX = W * 0.5;
+        let nayaX = nayaGroundX, nayaY = H - 104, nayaPose = 'idle', nayaHeld = false;
+        let rayanX = W * 0.3, rayanState = 'idle';
+        let kingX = gx, kingY = gy - 40, kingScale = 0.001, kingVisible = st > 1.0;
+
+        if (st < 2.6) {
+          // نايا تتراجع خائفة، ريان يتقدم
+          nayaPose = st > 1.4 ? 'worried' : 'idle';
+          rayanState = st > 1.4 ? 'run' : 'idle';
+          rayanX = U.lerp(W * 0.3, W * 0.36, U.clamp((st - 1.4) / 1.2, 0, 1));
+          if (kingVisible) {
+            // الملك يهبط من البوابة بقوس
+            const dT = U.easeOutCubic(U.clamp((st - 1.0) / 1.6, 0, 1));
+            kingScale = 0.3 + dT * 0.9;
+            kingX = U.lerp(gx, W * 0.62, dT);
+            kingY = U.lerp(gy - 30, H - 96, dT) - Math.sin(dT * Math.PI) * 70;
+          }
+        } else if (st < 3.6) {
+          // انقضاض أفقي سريع نحو نايا
+          const sw = U.clamp((st - 2.6) / 1.0, 0, 1);
+          const swE = sw * sw; // تسارع
+          kingScale = 1.2;
+          kingX = U.lerp(W * 0.62, nayaGroundX + 14, swE);
+          kingY = H - 96 - Math.sin(sw * Math.PI) * 26;
+          nayaPose = 'worried';
+          // خطوط سرعة خلف الملك
+          ctx.strokeStyle = 'rgba(180,120,255,0.5)';
+          ctx.lineWidth = 3; ctx.lineCap = 'round';
+          for (let k = 0; k < 5; k++) {
+            const lx = kingX + 40 + k * 26 + Math.sin(this.t * 20 + k) * 4;
+            ctx.beginPath(); ctx.moveTo(lx, kingY - 90 + k * 14); ctx.lineTo(lx + 34, kingY - 90 + k * 14); ctx.stroke();
+          }
+          rayanState = 'run';
+          rayanX = U.lerp(W * 0.36, W * 0.42, sw);
+          if (st > 3.45) { RN.Engine.doShake(6); RN.Engine.doFlash('#c88aff', 0.35); }
+        } else if (st < 5.8) {
+          // ممسوكة! يصعد بها نحو البوابة بقوس ديناميكي
+          const up = U.easeInOut(U.clamp((st - 3.6) / 2.2, 0, 1));
+          kingScale = U.lerp(1.2, 0.55, up);
+          // مسار بيزيه: من الأرض لأعلى ثم للبوابة
+          const bx0 = nayaGroundX + 14, by0 = H - 96;
+          const cx1 = W * 0.42, cy1 = H - 430; // ذروة القوس
+          kingX = (1 - up) * (1 - up) * bx0 + 2 * (1 - up) * up * cx1 + up * up * gx;
+          kingY = (1 - up) * (1 - up) * by0 + 2 * (1 - up) * up * cy1 + up * up * gy;
+          nayaHeld = true;
+          nayaPose = 'worried';
+          // ريان يطارد ويقفز محاولًا الإمساك
+          const chase = U.clamp((st - 3.6) / 1.2, 0, 1);
+          rayanX = U.lerp(W * 0.42, W * 0.52, chase);
+          rayanState = st < 4.6 ? 'run' : 'jump';
+          // أثر طاقة خلفهما
+          for (let k = 0; k < 3; k++) {
+            ctx.fillStyle = 'rgba(160,90,255,' + (0.3 - k * 0.08) + ')';
+            ctx.beginPath(); ctx.arc(kingX + k * 16, kingY + 30 + k * 22, 12 - k * 3, 0, 7); ctx.fill();
+          }
+        } else if (st < 6.8) {
+          // ابتلاع البوابة لهما وإغلاقها
+          const sh = U.clamp((st - 5.8) / 1.0, 0, 1);
+          kingScale = U.lerp(0.55, 0.02, sh);
+          kingX = gx; kingY = gy;
+          nayaHeld = kingScale > 0.1;
+          rayanX = W * 0.52; rayanState = 'idle';
+          if (st > 6.5 && st < 6.65) { RN.Engine.doFlash('#ffffff', 0.5); RN.Engine.doShake(8); }
+          // انكماش البوابة
+          ctx.globalAlpha = 1 - sh;
+        } else {
+          // ريان وحيد تحت المطر البنفسجي
+          kingVisible = false;
+          rayanX = W * 0.52;
+          rayanState = 'hurt';
+          ctx.globalAlpha = 1;
+        }
+        ctx.globalAlpha = 1;
+
+        // رسم نايا (على الأرض أو محمولة داخل كرة طاقة)
+        if (nayaHeld && kingVisible) {
+          const orbX = kingX - 26 * kingScale, orbY = kingY - 46 * kingScale;
+          RN.Chars.drawNaya(ctx, orbX, orbY + 34 * kingScale, 'worried', this.t, -1, 'princess', 1.15 * kingScale, -0.8);
+          ctx.strokeStyle = 'rgba(190,120,255,0.85)';
+          ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.ellipse(orbX, orbY, 40 * kingScale, 52 * kingScale, 0, 0, 7); ctx.stroke();
+          const og = ctx.createRadialGradient(orbX, orbY, 5, orbX, orbY, 46 * kingScale);
+          og.addColorStop(0, 'rgba(190,120,255,0.06)');
+          og.addColorStop(1, 'rgba(190,120,255,0.3)');
+          ctx.fillStyle = og;
+          ctx.beginPath(); ctx.ellipse(orbX, orbY, 40 * kingScale, 52 * kingScale, 0, 0, 7); ctx.fill();
+        } else if (st < 3.6) {
+          RN.Chars.drawNaya(ctx, nayaX, nayaY, nayaPose, this.t, -1, 'princess', 1.6, 1);
+        }
+        // ملك الظلال
+        if (kingVisible && kingScale > 0.02) {
+          RN.Chars.drawShadowKing(ctx, kingX, kingY, this.t, 1.35 * kingScale);
+        }
+        // ريان
+        RN.Chars.drawRayan(ctx, rayanX, H - 104, rayanState, this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.7, lookX: 1, lookY: st > 3.6 && st < 6.8 ? -0.8 : 0 });
+        // صرخة نايا عند الإمساك
+        if (st > 3.6 && st < 5.2) {
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold ' + RN.UI.fontPx(17) + 'px sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(RN.I18N.lang === 'ar' ? '!ريااااان' : 'RAYAAAN!', kingX - 30, kingY - 110 * kingScale);
+        }
       } else {
-        ctx.fillStyle = '#0d0a1e'; ctx.fillRect(0, 0, RN.VW, RN.VH);
-        // ستة عوالم كجزر ملونة
+        /* ===== العوالم الستة + ريان ينطلق ===== */
+        this._movingSky(ctx, '#0d0a1e', '#2a1a4a', '#3a2a55', 1.5, true);
+        // نجوم
+        for (let i = 0; i < 50; i++) {
+          const sx2 = (i * 137) % W, sy2 = (i * 89) % (H - 200);
+          ctx.globalAlpha = 0.4 + Math.sin(this.t * 2 + i) * 0.3;
+          ctx.fillStyle = '#cdbaff';
+          ctx.fillRect(sx2, sy2, 1.8, 1.8);
+        }
+        ctx.globalAlpha = 1;
         const cols = ['#58b24d', '#e0b263', '#e9f6ff', '#e0562a', '#bfe3ff', '#8a5cff'];
         for (let i = 0; i < 6; i++) {
-          const a = (i / 6) * Math.PI * 2 + this.t * 0.2;
-          const ix = RN.VW / 2 + Math.cos(a) * 250;
-          const iy = RN.VH / 2 - 20 + Math.sin(a) * 120;
-          ctx.fillStyle = cols[i];
-          ctx.beginPath(); ctx.ellipse(ix, iy, 55, 20, 0, 0, 7); ctx.fill();
+          const a = (i / 6) * Math.PI * 2 + this.t * 0.25;
+          const ix = W / 2 + Math.cos(a) * 260;
+          const iy = H / 2 - 30 + Math.sin(a) * 120;
+          const iw = 58 + Math.sin(this.t + i) * 4;
           ctx.fillStyle = U.shade(cols[i], -0.35);
-          ctx.beginPath(); ctx.moveTo(ix - 45, iy + 6); ctx.lineTo(ix, iy + 44); ctx.lineTo(ix + 45, iy + 6); ctx.closePath(); ctx.fill();
+          ctx.beginPath(); ctx.moveTo(ix - iw * 0.8, iy + 6); ctx.lineTo(ix, iy + iw * 0.8); ctx.lineTo(ix + iw * 0.8, iy + 6); ctx.closePath(); ctx.fill();
+          ctx.fillStyle = cols[i];
+          ctx.beginPath(); ctx.ellipse(ix, iy, iw, 20, 0, 0, 7); ctx.fill();
         }
-        RN.Chars.drawRayan(ctx, RN.VW / 2, RN.VH / 2 + 40, 'victory', this.t, 1, RN.C.OUTFITS.explorer, {});
+        // ريان يجري نحو مغامرته عبر الشاشة
+        const runX = U.lerp(-60, W + 80, st / this.durs[3]);
+        ctx.fillStyle = 'rgba(120,90,200,0.25)';
+        ctx.beginPath(); ctx.ellipse(runX, H - 60, 40, 8, 0, 0, 7); ctx.fill();
+        RN.Chars.drawRayan(ctx, runX, H - 70, 'run', this.t, 1, RN.C.OUTFITS.explorer, { scale: 1.7, lookX: 1 });
       }
+
       this.letterbox(ctx);
-      this.caption(ctx, this.slides[slide]);
+      this.caption(ctx, this.texts[slide]);
     }
   }
 
