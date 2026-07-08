@@ -25,13 +25,15 @@ window.RN = window.RN || {};
   const NAYA_HAIR_HI = '#5c4128';
 
   // ---- أحجام الشخصيات ----
-  // نايا هي المقياس الأساسي. كان ريان أطول من نايا بنسبة 50% على الطول
-  // (مع تعويض فرق الارتفاع الداخلي عبر CHAR_HEIGHT_RATIO)، ثم أصبح أقصر
-  // بنسبة 20% (× 0.8) وأنحف. RAYAN_SCALE هو مقياس الطول (الرأسي)، أما
-  // RAYAN_SLIM فهو معامل النحافة الأفقي (أقل من 1 = أنحف).
-  const NAYA_SCALE = 1.15;
-  const CHAR_HEIGHT_RATIO = 65.5 / 62; // ارتفاع نايا الداخلي ÷ ارتفاع ريان الداخلي
-  const RAYAN_SCALE = NAYA_SCALE * 1.5 * CHAR_HEIGHT_RATIO * 0.8; // ≈ 1.458 — الطول بعد التقصير 20%
+  // الارتفاعان الداخليان للرسم (من القدمين حتى أعلى الشعر) بوحدات الرسم
+  // المحلية؛ يجب تحديثهما إذا تغيّرت هندسة رسم الشخصيتين.
+  const RAYAN_HEIGHT = 62;
+  const NAYA_HEIGHT = 65.5;
+  const NAYA_SCALE = 1.15; // مقياس نايا الافتراضي
+  // نسبة طول ريان إلى نايا كما تظهر على الشاشة: أطول بـ~20% صافيًا (1.5 × 0.8)
+  // بعد تعويض فرق الارتفاع الداخلي بين الرسمين.
+  const RAYAN_TO_NAYA = 1.5 * (NAYA_HEIGHT / RAYAN_HEIGHT) * 0.8; // ≈ 1.27
+  const RAYAN_SCALE = NAYA_SCALE * RAYAN_TO_NAYA; // ≈ 1.458 — مقياس ريان الرأسي الافتراضي
   const RAYAN_SLIM = 0.8; // العرض = الطول × 0.8 (أنحف بنسبة 20%)
 
   function skinGrad(ctx, x0, y0, x1, y1) {
@@ -93,7 +95,9 @@ window.RN = window.RN || {};
       }
       case 'shoot':
         p.armFront = true;
-        p.armA = -1.57; p.armB = 0.3; p.lean = 0.08; p.mouth = 'grit'; break;
+        // الذراع مائلة قليلًا تحت الأفقي كي تحاذي اليد نقطة انطلاق القذيفة
+        // الثابتة في player.js (نقطة الانطلاق مضبوطة على ارتفاعات الأعداء).
+        p.armA = -1.1; p.armB = 0.3; p.lean = 0.08; p.mouth = 'grit'; break;
       case 'slam':
         p.armFront = true;
         p.legA = 0.8; p.legB = 0.8; p.armA = -2.8; p.armB = -2.8; p.mouth = 'grit'; p.hairSway = -1.2; break;
@@ -127,8 +131,10 @@ window.RN = window.RN || {};
     const scaleX = fx.scaleX || scaleY * RAYAN_SLIM; // العرض (أنحف)
     ctx.save();
     ctx.translate(x, y + (p.bob || 0) * scaleY);
+    // الميل قبل التحجيم غير المتساوي (scaleX ≠ scaleY) حتى يبقى دورانًا صلبًا
+    // بدل قصٍّ يشوّه الجسم؛ ويُضرب في facing ليحافظ على اتجاه الميل عند الانعكاس.
+    ctx.rotate(facing * (p.lean || 0));
     ctx.scale(facing * scaleX, scaleY);
-    ctx.rotate(p.lean || 0);
     ctx.translate(0, p.crouch * 12);
 
     if (fx.shield) {
@@ -726,7 +732,7 @@ window.RN = window.RN || {};
     const s = Math.sin;
     ctx.save();
     ctx.translate(x, y);
-    ctx.scale((facing || 1) * (scale || 1.15), scale || 1.15);
+    ctx.scale((facing || 1) * (scale || NAYA_SCALE), scale || NAYA_SCALE);
     let bob = 0, armA = 0.25, armB = -0.25, mouth = 'smile', eyes = 'open', breath = 0;
     if (pose === 'idle') { bob = s(t * 2.3) * 1.2; breath = s(t * 2.3) * 0.5 + 0.5; if ((t % 3.1) > 2.95) eyes = 'blink'; }
     if (pose === 'worried') { armA = 2.4; armB = 2.4; mouth = 'sad'; bob = s(t * 3) * 0.8; }
@@ -1201,5 +1207,5 @@ window.RN = window.RN || {};
     ctx.restore();
   }
 
-  RN.Chars = { drawRayan, drawNaya, drawShadowKing, SKIN, HAIR, RAYAN_SCALE, NAYA_SCALE };
+  RN.Chars = { drawRayan, drawNaya, drawShadowKing, SKIN, HAIR, RAYAN_SCALE, NAYA_SCALE, RAYAN_TO_NAYA };
 })();

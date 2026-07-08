@@ -46,10 +46,10 @@ window.RN = window.RN || {};
       }
 
       // الشخصيتان — ينظر كل منهما للآخر
-      // ريان أطول من نايا بنسبة 50% (زيادة على الطول). النسبة RAYAN_SCALE/NAYA_SCALE
-      // تُغلّف مضاعِف الـ50% وتعويض فرق الارتفاع الداخلي بين الشخصيتين.
+      // RAYAN_TO_NAYA (≈ 1.27 مقياسًا، ~20% طولًا على الشاشة) تُبقي نسبة
+      // الطول بين الشخصيتين موحّدة مع بقية المشاهد.
       const nayaTitleScale = 1.5;
-      const rayanTitleScale = nayaTitleScale * (RN.Chars.RAYAN_SCALE / RN.Chars.NAYA_SCALE);
+      const rayanTitleScale = nayaTitleScale * RN.Chars.RAYAN_TO_NAYA;
       RN.Chars.drawRayan(ctx, RN.VW / 2 - 190, RN.VH - 74, 'idle', this.t, 1,
         RN.C.OUTFITS[RN.Save.data.outfit || 'explorer'], { scale: rayanTitleScale, lookX: 1 });
       RN.Chars.drawNaya(ctx, RN.VW / 2 + 190, RN.VH - 74, 'wave', this.t, -1, 'princess', nayaTitleScale, 0.9);
@@ -252,7 +252,8 @@ window.RN = window.RN || {};
         ctx.font = `bold ${RN.UI.fontPx(17)}px sans-serif`;
         ctx.fillText(`${RN.t('profile')} ${i + 1}`, cx, cy + 26);
         if (p) {
-          RN.Chars.drawRayan(ctx, cx, cy + 125, 'idle', this.t + i, 1, RN.C.OUTFITS[p.outfit] || RN.C.OUTFITS.explorer, {});
+          // مقياس مصغّر ثابت كي لا تتجاوز الشخصية عنوان البطاقة عند cy+26
+          RN.Chars.drawRayan(ctx, cx, cy + 125, 'idle', this.t + i, 1, RN.C.OUTFITS[p.outfit] || RN.C.OUTFITS.explorer, { scale: 1.18 });
           ctx.fillStyle = '#ffffff';
           ctx.font = `${RN.UI.fontPx(13)}px sans-serif`;
           let stars = 0; for (const k in p.stars) stars += p.stars[k];
@@ -479,7 +480,8 @@ window.RN = window.RN || {};
           const cx = RN.VW / 2 - 240 + (i % 3) * 240, cy = startY + Math.floor(i / 3) * 165;
           ctx.fillStyle = 'rgba(30,38,66,0.9)';
           U.roundRect(ctx, cx - 105, cy, 210, 150, 12); ctx.fill();
-          RN.Chars.drawRayan(ctx, cx - 55, cy + 115, 'idle', this.t + i, 1, o, {});
+          // مقياس مصغّر ثابت ليلائم ارتفاع بطاقة المتجر (150 بكسل)
+          RN.Chars.drawRayan(ctx, cx - 55, cy + 115, 'idle', this.t + i, 1, o, { scale: 1.18 });
           const owned = sd.outfitsOwned.includes(oid);
           const equipped = sd.outfit === oid;
           ctx.textAlign = 'center';
