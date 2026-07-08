@@ -38,7 +38,7 @@
           if (!b.invisible && RN.UI.hit(b, v.x, v.y)) RN.UI.press(b);
         }
       }
-      if (scene.onClick) scene.onClick(v.x, v.y);
+      try { if (scene.onClick) scene.onClick(v.x, v.y); } catch (err) { console.error('[RN] click error:', err); }
     });
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 

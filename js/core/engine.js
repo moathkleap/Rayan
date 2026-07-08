@@ -76,6 +76,8 @@ window.RN = window.RN || {};
         if (this.scene && this.scene.exit) this.scene.exit();
         this.scene = this._pendingScene;
         this._pendingScene = null;
+        this.slowmo = 1;
+        this._errStreak = 0;
         if (this.scene.enter) this.scene.enter();
       }
       RN.Input.pollGamepad();
@@ -84,7 +86,23 @@ window.RN = window.RN || {};
       this.frame++;
       if (this.shake > 0) this.shake = Math.max(0, this.shake - dt * 18);
       if (this.flash > 0) this.flash = Math.max(0, this.flash - dt * 3);
-      if (this.scene && this.scene.update) this.scene.update(gdt, dt);
+      // حماية من التجمد: خطأ عابر في التحديث لا يوقف اللعبة،
+      // وخطأ متكرر يعيد اللاعب للقائمة بدل شاشة ميتة
+      try {
+        if (this.scene && this.scene.update) this.scene.update(gdt, dt);
+        this._errStreak = 0;
+      } catch (err) {
+        this._errStreak = (this._errStreak || 0) + 1;
+        if (this._errStreak === 1) console.error('[RN] scene update error:', err);
+        if (this._errStreak > 90) {
+          console.error('[RN] persistent error — recovering to menu');
+          this._errStreak = 0;
+          try {
+            RN.Save.commit(false);
+            this.setScene(RN.Scenes ? new RN.Scenes.MenuScene() : null);
+          } catch (e2) { /* لا مزيد */ }
+        }
+      }
       RN.Input.endFrame();
     },
 
@@ -106,7 +124,12 @@ window.RN = window.RN || {};
       ctx.beginPath();
       ctx.rect(-2, -2, VW + 4, VH + 4);
       ctx.clip();
-      if (this.scene && this.scene.render) this.scene.render(ctx);
+      try {
+        if (this.scene && this.scene.render) this.scene.render(ctx);
+      } catch (err) {
+        if (!this._renderErrLogged) { console.error('[RN] render error:', err); this._renderErrLogged = true; }
+        ctx.restore(); ctx.save();
+      }
       if (this.flash > 0) {
         ctx.globalAlpha = Math.min(1, this.flash);
         ctx.fillStyle = this.flashColor;
