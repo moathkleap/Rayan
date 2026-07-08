@@ -436,7 +436,7 @@ window.RN = window.RN || {};
         shield: this.shield,
         invincible: this.powerups.invincible > 0,
         power2x: this.powerups.power2x > 0,
-        scale: 1.18,
+        scale: RN.Chars.RAYAN_SCALE,
         lookX: 0.7,
         lookY: this.vy < -100 ? -0.5 : this.vy > 200 ? 0.6 : 0,
       };

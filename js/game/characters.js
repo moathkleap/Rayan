@@ -24,6 +24,15 @@ window.RN = window.RN || {};
   const NAYA_HAIR = '#2c1f14';
   const NAYA_HAIR_HI = '#5c4128';
 
+  // ---- أحجام الشخصيات ----
+  // نايا هي المقياس الأساسي، وريان أطول (وأكبر) منها بنسبة 50% على الطول.
+  // ملاحظة: رسمة نايا الداخلية أعلى قليلًا من ريان (شعر مجعّد + فيونكة +
+  // فستان منفوش)، لذا نعوّض بنسبة الارتفاع الداخلي المقيسة كي يصبح طول
+  // ريان الظاهر أكبر من نايا بنسبة 50% بالضبط.
+  const NAYA_SCALE = 1.15;
+  const CHAR_HEIGHT_RATIO = 65.5 / 62; // ارتفاع نايا الداخلي ÷ ارتفاع ريان الداخلي
+  const RAYAN_SCALE = NAYA_SCALE * 1.5 * CHAR_HEIGHT_RATIO; // ≈ 1.822 — أطول من نايا 50% ظاهريًا
+
   function skinGrad(ctx, x0, y0, x1, y1) {
     const g = ctx.createLinearGradient(x0, y0, x1, y1);
     g.addColorStop(0, SKIN_HI);
@@ -113,7 +122,7 @@ window.RN = window.RN || {};
     const p = rayanPose(state, t);
     const o = outfit || RN.C.OUTFITS.explorer;
     fx = fx || {};
-    const scale = fx.scale || 1.18;
+    const scale = fx.scale || RAYAN_SCALE;
     ctx.save();
     ctx.translate(x, y + (p.bob || 0) * scale);
     ctx.scale(facing * scale, scale);
@@ -1190,5 +1199,5 @@ window.RN = window.RN || {};
     ctx.restore();
   }
 
-  RN.Chars = { drawRayan, drawNaya, drawShadowKing, SKIN, HAIR };
+  RN.Chars = { drawRayan, drawNaya, drawShadowKing, SKIN, HAIR, RAYAN_SCALE, NAYA_SCALE };
 })();
