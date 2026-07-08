@@ -20,6 +20,10 @@ window.RN = window.RN || {};
       this.h = 30;
       this.w = this.isBoss ? 64 : 120 + li * 12 + wi * 8;
       this.tiles = new Uint8Array(this.w * this.h);
+      // خطوة الصف الثابتة للتخزين: تُحسب مرة عند التخصيص ولا تتغير.
+      // العرض this.w قد يُقلَّم لاحقًا (للكاميرا/الخريطة) لكن idx يجب أن
+      // يبقى على نفس الخطوة وإلا انزاحت كل قراءات البلاطات وفسدت الأرضية.
+      this.stride = this.w;
       this.entities = [];
       this.enemies = [];
       this.gates = {};       // gateId -> [[tx,ty],...]
@@ -32,7 +36,7 @@ window.RN = window.RN || {};
       else this._generate();
     }
 
-    idx(tx, ty) { return ty * this.w + tx; }
+    idx(tx, ty) { return ty * this.stride + tx; }
     tileAt(tx, ty) {
       if (tx < 0 || tx >= this.w) return T().SOLID; // جدران جانبية
       if (ty < 0) return T().EMPTY;
