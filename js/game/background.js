@@ -17,6 +17,7 @@ window.RN = window.RN || {};
     ['#6f9cc8', '#a8c8e8', '#eef6ff'],
     ['#2a1418', '#6e2a1e', '#c8552a'],
     ['#3a6cc8', '#6f9fe0', '#cfe8ff'],
+    ['#0b1030', '#20306e', '#3a4a8e'],
     ['#0a0718', '#231640', '#3a2560'],
   ];
 
@@ -24,6 +25,9 @@ window.RN = window.RN || {};
     constructor(worldIndex, seed) {
       this.wi = worldIndex;
       this.w = RN.C.WORLDS[worldIndex];
+      this.isDark = this.w.id === 'dark';
+      this.isStars = this.w.id === 'stars';
+      this.night = this.isDark || this.isStars; // عوالم بسماء ليلية مرصعة
       const rng = U.rng(seed || (worldIndex + 7) * 999);
       this.rngv = rng;
 
@@ -66,21 +70,27 @@ window.RN = window.RN || {};
 
     /* ---------- الطبقة 2: الشمس/القمر + أشعة ضوئية ---------- */
     _sunAndRays(ctx, time) {
-      if (this.wi === 5) {
-        // نجوم وقمر بنفسجي وشفق سحري
+      if (this.night) {
+        // نجوم وقمر وشفق: بنفسجي في العالم المظلم، ذهبي-فيروزي في عالم النجوم
         for (const s of this.stars) {
-          ctx.globalAlpha = 0.35 + Math.sin(time * 2 + s.tw) * 0.3;
-          ctx.fillStyle = s.tw > 4.5 ? '#ffd9f0' : '#cdbaff';
+          ctx.globalAlpha = (this.isStars ? 0.5 : 0.35) + Math.sin(time * 2 + s.tw) * 0.3;
+          ctx.fillStyle = this.isStars ? (s.tw > 4.5 ? '#ffe9a0' : '#cfe4ff') : (s.tw > 4.5 ? '#ffd9f0' : '#cdbaff');
           ctx.fillRect(s.x, s.y, s.s, s.s);
         }
         ctx.globalAlpha = 1;
-        // شفق (Aurora) بنفسجي متموج
+        // شفق (Aurora) متموج
         ctx.globalCompositeOperation = 'screen';
         for (let b = 0; b < 3; b++) {
           const g = ctx.createLinearGradient(0, 40 + b * 30, 0, 170 + b * 30);
-          g.addColorStop(0, 'rgba(150,80,255,0)');
-          g.addColorStop(0.5, `rgba(${120 + b * 30},${60 + b * 20},255,0.10)`);
-          g.addColorStop(1, 'rgba(80,220,200,0)');
+          if (this.isStars) {
+            g.addColorStop(0, 'rgba(90,180,255,0)');
+            g.addColorStop(0.5, `rgba(${150 + b * 30},${190 + b * 15},255,0.10)`);
+            g.addColorStop(1, 'rgba(255,220,120,0)');
+          } else {
+            g.addColorStop(0, 'rgba(150,80,255,0)');
+            g.addColorStop(0.5, `rgba(${120 + b * 30},${60 + b * 20},255,0.10)`);
+            g.addColorStop(1, 'rgba(80,220,200,0)');
+          }
           ctx.fillStyle = g;
           ctx.beginPath();
           ctx.moveTo(0, 90 + b * 26);
@@ -93,18 +103,20 @@ window.RN = window.RN || {};
           ctx.fill();
         }
         ctx.globalCompositeOperation = 'source-over';
-        // قمر
+        // قمر (بنفسجي في المظلم، ذهبي في عالم النجوم)
         const mx = RN.VW - 150, my = 90;
+        const hc = this.isStars ? '255,225,150' : '190,160,255';
         const halo = ctx.createRadialGradient(mx, my, 20, mx, my, 110);
-        halo.addColorStop(0, 'rgba(190,160,255,0.5)');
-        halo.addColorStop(1, 'rgba(190,160,255,0)');
+        halo.addColorStop(0, `rgba(${hc},0.5)`);
+        halo.addColorStop(1, `rgba(${hc},0)`);
         ctx.fillStyle = halo;
         ctx.fillRect(mx - 110, my - 110, 220, 220);
         const mg = ctx.createRadialGradient(mx - 10, my - 10, 4, mx, my, 36);
-        mg.addColorStop(0, '#e8dcff'); mg.addColorStop(1, '#a288d8');
+        if (this.isStars) { mg.addColorStop(0, '#fff4d0'); mg.addColorStop(1, '#d8b268'); }
+        else { mg.addColorStop(0, '#e8dcff'); mg.addColorStop(1, '#a288d8'); }
         ctx.fillStyle = mg;
         ctx.beginPath(); ctx.arc(mx, my, 34, 0, 7); ctx.fill();
-        ctx.fillStyle = 'rgba(120,95,180,0.5)';
+        ctx.fillStyle = this.isStars ? 'rgba(190,150,90,0.45)' : 'rgba(120,95,180,0.5)';
         ctx.beginPath(); ctx.arc(mx - 11, my - 7, 7, 0, 7); ctx.arc(mx + 9, my + 11, 5, 0, 7); ctx.arc(mx + 2, my - 15, 3.5, 0, 7); ctx.fill();
         return;
       }
@@ -168,7 +180,7 @@ window.RN = window.RN || {};
       for (const [px, py, pw, ph] of puffs) ctx.ellipse(x + px * w, y + py * w + 4, pw * w, ph * w, 0, 0, 7);
       ctx.fill();
       // جسم مضيء
-      ctx.fillStyle = this.wi === 5 ? '#4a3a70' : this.wi === 3 ? '#6e4048' : '#ffffff';
+      ctx.fillStyle = this.isDark ? '#4a3a70' : this.isStars ? '#46549e' : this.wi === 3 ? '#6e4048' : '#ffffff';
       ctx.beginPath();
       for (const [px, py, pw, ph] of puffs) ctx.ellipse(x + px * w, y + py * w, pw * w, ph * w, 0, 0, 7);
       ctx.fill();
@@ -511,7 +523,7 @@ window.RN = window.RN || {};
         const mx = ((m.x + time * m.sp - camX * 0.3) % (RN.VW + 40) + RN.VW + 40) % (RN.VW + 40) - 20;
         const my = m.y + Math.sin(time * 0.8 + m.ph) * 22;
         const a = 0.12 + Math.sin(time * 1.5 + m.ph * 2) * 0.1;
-        ctx.fillStyle = this.wi === 5 ? `rgba(190,150,255,${a})` : this.wi === 3 ? `rgba(255,170,90,${a})` : `rgba(255,250,210,${a + 0.05})`;
+        ctx.fillStyle = this.isDark ? `rgba(190,150,255,${a})` : this.isStars ? `rgba(255,222,140,${a + 0.05})` : this.wi === 3 ? `rgba(255,170,90,${a})` : `rgba(255,250,210,${a + 0.05})`;
         ctx.beginPath(); ctx.arc(mx, my, m.s, 0, 7); ctx.fill();
       }
       ctx.globalCompositeOperation = 'source-over';

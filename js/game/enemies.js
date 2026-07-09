@@ -36,6 +36,11 @@ window.RN = window.RN || {};
     cloudJelly: { ai: 'floater', hp: 2, w: 34, h: 30, speed: 45, color: '#c8d8f8', dmg: 1 },
     windWisp: { ai: 'coward', hp: 1, w: 26, h: 26, speed: 150, color: '#a8e8e8', dmg: 1 },
     skyDrake: { ai: 'flyerShooter', hp: 3, w: 44, h: 32, speed: 80, color: '#4ab0a8', dmg: 1, shot: 'lightning', cd: 2.5, chase: 260 },
+    // ---- عالم النجوم ----
+    starWisp: { ai: 'coward', hp: 1, w: 26, h: 26, speed: 145, color: '#ffe98a', dmg: 1 },
+    cometHawk: { ai: 'diver', hp: 2, w: 40, h: 26, speed: 150, color: '#7ad8ff', dmg: 1, chase: 250 },
+    nebulaJelly: { ai: 'floater', hp: 2, w: 34, h: 32, speed: 50, color: '#c88aff', dmg: 1 },
+    starSentinel: { ai: 'teleShooter', hp: 3, w: 30, h: 42, speed: 0, color: '#ffd76a', dmg: 1, shot: 'lightning', cd: 2.2 },
     // ---- العالم المظلم ----
     shadowGhost: { ai: 'stalker', hp: 2, w: 32, h: 38, speed: 70, color: '#5a3a8a', dmg: 1, chase: 260 },
     darkKnight: { ai: 'guard', hp: 5, w: 36, h: 48, speed: 55, color: '#3a3a5a', dmg: 2, range: 150, blocker: true },
@@ -514,7 +519,7 @@ window.RN = window.RN || {};
           ctx.strokeStyle = U.shade(c, -0.35); ctx.lineWidth = 1.5;
           ctx.beginPath(); ctx.moveTo(-5, -this.h + 20); ctx.lineTo(2, -this.h + 30); ctx.lineTo(-3, -this.h + 40); ctx.stroke();
         }
-      } else if (t === 'vulture' || t === 'stormBird') {
+      } else if (t === 'vulture' || t === 'stormBird' || t === 'cometHawk') {
         const flap = this.state === 'dive' ? 0.2 : Math.sin(this._animT * 8) * 0.7;
         ctx.fillStyle = c;
         // جناحان
@@ -533,8 +538,14 @@ window.RN = window.RN || {};
           ctx.globalAlpha = 0.5 + Math.sin(time * 10) * 0.4;
           ctx.beginPath(); ctx.moveTo(-14, -this.h / 2); ctx.lineTo(-19, -this.h / 2 - 5); ctx.lineTo(-16, -this.h / 2 - 9); ctx.stroke();
           ctx.globalAlpha = 1;
+        } else if (t === 'cometHawk') { // ذيل مذنّب متوهج
+          ctx.strokeStyle = '#bcecff'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+          ctx.globalAlpha = 0.55 + Math.sin(time * 8) * 0.3;
+          ctx.beginPath(); ctx.moveTo(-this.w / 2, -this.h / 2); ctx.lineTo(-this.w / 2 - 15, -this.h / 2 - 5); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-this.w / 2 + 2, -this.h / 2 + 5); ctx.lineTo(-this.w / 2 - 9, -this.h / 2 + 2); ctx.stroke();
+          ctx.globalAlpha = 1;
         }
-      } else if (t === 'mummyRat' || t === 'windWisp') {
+      } else if (t === 'mummyRat' || t === 'windWisp' || t === 'starWisp') {
         ctx.fillStyle = c;
         ctx.beginPath(); ctx.ellipse(0, -this.h / 2, this.w / 2, this.h / 2, 0, 0, 7); ctx.fill();
         if (t === 'mummyRat') {
@@ -550,6 +561,14 @@ window.RN = window.RN || {};
           ctx.globalAlpha = 0.7;
           ctx.fillStyle = cl;
           ctx.beginPath(); ctx.ellipse(Math.sin(time * 6) * 3, -this.h / 2, this.w / 2 - 5, this.h / 2 - 5, 0, 0, 7); ctx.fill();
+          ctx.globalAlpha = 1;
+        }
+        if (t === 'starWisp') { // بريق نجمي رباعي
+          ctx.fillStyle = '#fff8d0';
+          ctx.globalAlpha = 0.6 + Math.sin(time * 6) * 0.35;
+          ctx.save(); ctx.translate(0, -this.h / 2); ctx.rotate(time * 1.5);
+          for (let k = 0; k < 4; k++) { ctx.rotate(Math.PI / 2); ctx.fillRect(-1, -this.w / 2 - 4, 2, 7); }
+          ctx.restore();
           ctx.globalAlpha = 1;
         }
         this._eye(ctx, this.w / 2 - 9, -this.h / 2 - 2, 3);
@@ -603,7 +622,7 @@ window.RN = window.RN || {};
         ctx.fillStyle = 'rgba(255,255,255,0.6)';
         ctx.beginPath(); ctx.moveTo(-3, -this.h + 3); ctx.lineTo(1, -this.h + 3); ctx.lineTo(-1, -8); ctx.closePath(); ctx.fill();
         this._eye(ctx, 3, -this.h + 10, 2.5, '#4a80c0');
-      } else if (t === 'fireImp' || t === 'shadeCaster') {
+      } else if (t === 'fireImp' || t === 'shadeCaster' || t === 'starSentinel') {
         // كيان طافٍ بلهب/ظل
         const fl = Math.sin(this._animT * 10) * 3;
         ctx.fillStyle = c;
@@ -615,8 +634,9 @@ window.RN = window.RN || {};
         ctx.fill();
         ctx.fillStyle = cl;
         ctx.beginPath(); ctx.ellipse(0, -this.h / 2, this.w / 4, this.h / 3, 0, 0, 7); ctx.fill();
-        this._eye(ctx, -5, -this.h / 2 - 4, 3, t === 'shadeCaster' ? '#e8b0ff' : '#3a2010');
-        this._eye(ctx, 6, -this.h / 2 - 4, 3, t === 'shadeCaster' ? '#e8b0ff' : '#3a2010');
+        const sentEye = t === 'shadeCaster' ? '#e8b0ff' : t === 'starSentinel' ? '#fff2c0' : '#3a2010';
+        this._eye(ctx, -5, -this.h / 2 - 4, 3, sentEye);
+        this._eye(ctx, 6, -this.h / 2 - 4, 3, sentEye);
       } else if (t === 'magmaTurret') {
         ctx.fillStyle = c;
         ctx.beginPath(); ctx.arc(0, -6, this.w / 2, Math.PI, 0); ctx.fill();
@@ -627,7 +647,7 @@ window.RN = window.RN || {};
         ctx.globalAlpha = 1;
         ctx.fillStyle = cd;
         ctx.fillRect(-this.w / 2, -8, this.w, 8);
-      } else if (t === 'cloudJelly') {
+      } else if (t === 'cloudJelly' || t === 'nebulaJelly') {
         ctx.globalAlpha = 0.85;
         ctx.fillStyle = c;
         ctx.beginPath(); ctx.arc(0, -this.h / 2 - 4, this.w / 2, Math.PI, 0); ctx.fill();

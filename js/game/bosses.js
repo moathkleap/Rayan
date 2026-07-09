@@ -1,7 +1,7 @@
 'use strict';
 /* ============================================================
    Rayan & Naya — الزعماء
-   6 زعماء أصليون، لكل منهم 3 أطوار قتال، نوافذ ضعف مختلفة،
+   7 زعماء أصليون، لكل منهم 3 أطوار قتال، نوافذ ضعف مختلفة،
    هجمات مُنذَرة (Telegraphed)، ومؤثرات خاصة
    ============================================================ */
 window.RN = window.RN || {};
@@ -14,6 +14,7 @@ window.RN = window.RN || {};
     { id: 'iceDragon', hp: 34, w: 130, h: 80, color: '#7ab0d8', touchDmg: 2 },
     { id: 'lavaBeast', hp: 38, w: 110, h: 100, color: '#c04a24', touchDmg: 2 },
     { id: 'skyWarden', hp: 40, w: 80, h: 110, color: '#5a8ad8', touchDmg: 2 },
+    { id: 'cometTitan', hp: 44, w: 100, h: 90, color: '#6a8ad8', touchDmg: 2 },
     { id: 'shadowKing', hp: 50, w: 90, h: 120, color: '#3a2a6a', touchDmg: 2 },
   ];
 
@@ -334,6 +335,7 @@ window.RN = window.RN || {};
       const ph = this.phase;
       switch (this.state) {
         case 'intro': if (this.timer <= 0) { this.state = 'tele'; this.timer = 0.9; } break;
+        case 'move': // بعد انتهاء نافذة الضعف يعود للتنقل
         case 'tele': // ينتقل بين مواضع عالية
           if (this.timer <= 0) {
             scene.particles.burst(this.x + this.w / 2, this.y + this.h / 2, 16, { color: '#8ad8ff', speed: 160, size: 3, life: 0.5, glow: true });
@@ -376,12 +378,76 @@ window.RN = window.RN || {};
       }
     }
 
-    /* ========== 5: ملك الظلال ========== */
+    /* ========== 5: المذنّب الأعظم ========== */
     _b5(scene, dt, px) {
+      const ph = this.phase;
+      switch (this.state) {
+        case 'intro': if (this.timer <= 0) { this.state = 'orbit'; this.timer = 1.4; } break;
+        case 'move': // بعد نافذة الضعف يعود للتحليق
+        case 'orbit': { // تحليق متموج فوق الساحة
+          this.state = 'orbit';
+          this._orbT = (this._orbT || 0) + dt;
+          const tx = U.clamp(px + Math.sin(this._orbT * 1.6) * 220, 90, scene.level.w * 32 - 90 - this.w);
+          this.x += (tx - this.x) * Math.min(1, dt * 2.2);
+          this.y = this.groundY - 240 + Math.sin(this._orbT * 2.3) * 40;
+          if (this.timer <= 0) {
+            const opts = ph >= 3 ? ['meteors', 'burst', 'crash'] : ph === 2 ? ['meteors', 'crash'] : ['meteors'];
+            this.state = U.pick(opts);
+            this.timer = this.state === 'meteors' ? 1.1 : this.state === 'burst' ? 0.9 : 0.7;
+            if (this.state === 'meteors') {
+              const n = 1 + ph;
+              this._mxs = [];
+              for (let i = 0; i < n; i++) this._mxs.push(U.clamp(px + U.rand(-200, 200), 60, scene.level.w * 32 - 60));
+            }
+          }
+          break;
+        }
+        case 'meteors': // وابل نيازك مُنذَر
+          this._telegraph = { xs: this._mxs, t: this.timer, kind: 'meteor' };
+          if (this.timer <= 0) {
+            this._telegraph = null;
+            for (const mx of this._mxs) {
+              scene.projectiles.push(new RN.Projectile(mx, this.y - 40, 0, 560, false, 'rock', 1));
+            }
+            RN.Audio.sfx('slam');
+            this.state = 'orbit'; this.timer = 1.6 - ph * 0.25;
+          }
+          break;
+        case 'burst': { // حلقة شظايا نجمية
+          if (this.timer <= 0) {
+            const bx = this.x + this.w / 2, by = this.y + this.h / 2;
+            const n = 6 + ph * 2;
+            for (let i = 0; i < n; i++) {
+              const a = (i / n) * Math.PI * 2 + this.animT;
+              scene.projectiles.push(new RN.Projectile(bx, by, Math.cos(a) * 240, Math.sin(a) * 240, false, 'lightning', 1));
+            }
+            RN.Audio.sfx('shot');
+            this.state = 'orbit'; this.timer = 1.4 - ph * 0.2;
+          }
+          break;
+        }
+        case 'crash': // ارتطام مذنّبي ثم خمود (نافذة الضعف)
+          if (this.timer > 0) break;
+          { const ang = Math.atan2((this.groundY - this.h) - this.y, px - this.x);
+            this.x += Math.cos(ang) * 500 * dt;
+            this.y += Math.sin(ang) * 500 * dt; }
+          if (this.y >= this.groundY - this.h - 6) {
+            this.y = this.groundY - this.h;
+            RN.Engine.doShake(7); RN.Audio.sfx('slam');
+            scene.particles.burst(this.x + this.w / 2, this.groundY - 10, 22, { color: '#ffe98a', speed: 220, size: 4, life: 0.6, glow: true });
+            this.stun = 2.2;
+          }
+          break;
+      }
+    }
+
+    /* ========== 6: ملك الظلال ========== */
+    _b6(scene, dt, px) {
       const ph = this.phase;
       scene.darkVeil = ph >= 2 ? (ph >= 3 ? 0.55 : 0.35) : 0.15; // تضييق الرؤية
       switch (this.state) {
         case 'intro': if (this.timer <= 0) { this.state = 'tele'; this.timer = 0.8; } break;
+        case 'move': // بعد انتهاء نافذة الضعف يعود للتنقل
         case 'tele':
           if (this.timer <= 0) {
             scene.particles.burst(this.x + this.w / 2, this.y + this.h / 2, 20, { color: '#8a5cff', speed: 180, size: 4, life: 0.6, glow: true });
@@ -616,7 +682,44 @@ window.RN = window.RN || {};
           ctx.shadowBlur = 0;
           break;
         }
-        case 5: { // ملك الظلال
+        case 5: { // المذنّب الأعظم
+          // ذيل متوهج خلف الرأس
+          ctx.globalCompositeOperation = 'screen';
+          const tails = [['rgba(120,200,255,0.35)', 0], ['rgba(255,230,150,0.3)', 1], ['rgba(255,255,255,0.22)', 2]];
+          for (const [tc, i] of tails) {
+            ctx.fillStyle = tc;
+            ctx.beginPath();
+            ctx.moveTo(-w * 0.1, -h * 0.75 + i * 8);
+            ctx.quadraticCurveTo(-w * (0.9 + i * 0.15), -h * (0.65 + i * 0.08) + wob, -w * (1.15 + i * 0.18), -h * 0.35 + wob * 2);
+            ctx.quadraticCurveTo(-w * 0.7, -h * 0.42, -w * 0.05, -h * 0.35);
+            ctx.closePath(); ctx.fill();
+          }
+          ctx.globalCompositeOperation = 'source-over';
+          // رأس صخري
+          ctx.fillStyle = c;
+          ctx.beginPath(); ctx.arc(w * 0.12, -h * 0.55, h * 0.42, 0, 7); ctx.fill();
+          // فوهات نيزكية
+          ctx.fillStyle = cd;
+          ctx.beginPath();
+          ctx.arc(w * 0.0, -h * 0.66, h * 0.12, 0, 7);
+          ctx.arc(w * 0.24, -h * 0.38, h * 0.09, 0, 7);
+          ctx.fill();
+          // شقوق ضوء نجمي (تتوهج ذهبيًا في نافذة الضعف)
+          const cglow = this.vulnerable ? '#ffd24a' : '#bfe8ff';
+          ctx.strokeStyle = cglow;
+          ctx.shadowColor = cglow; ctx.shadowBlur = this.vulnerable ? 16 : 8;
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.moveTo(-w * 0.05, -h * 0.72); ctx.lineTo(w * 0.08, -h * 0.56); ctx.lineTo(-w * 0.02, -h * 0.4);
+          ctx.moveTo(w * 0.28, -h * 0.72); ctx.lineTo(w * 0.34, -h * 0.56);
+          ctx.stroke();
+          ctx.shadowBlur = 0;
+          // عينان
+          this._beye(ctx, w * 0.2, -h * 0.6, 5, this.vulnerable ? '#ffd24a' : '#7ae0ff');
+          this._beye(ctx, w * 0.4, -h * 0.55, 4, this.vulnerable ? '#ffd24a' : '#7ae0ff');
+          break;
+        }
+        case 6: { // ملك الظلال
           RN.Chars.drawShadowKing(ctx, 0, 0, this.animT, Math.max(1, w / 76));
           // هالة ضعف
           if (this.vulnerable) {

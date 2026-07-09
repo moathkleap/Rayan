@@ -30,6 +30,10 @@ window.RN = window.RN || {};
       ar: ['قفص معلق بين الغيوم والبروق.', 'نايا: لو أرجّحُ القفص نحو تلك الجزيرة...', '“ريان… أنا أعلم أنك قادم.”'],
       en: ['A cage swings among clouds and lightning.', 'Naya: If I swing it toward that island...', '"Rayan… I know you\'re coming."'],
     },
+    { // قفص من ضوء النجوم
+      ar: ['قفص من خيوط ضوء النجوم... يتلألأ ولا يُكسر.', 'نايا: النجوم لا تسجن أحدًا... إنها تدل الطريق!', '“ريان… انظر إلى السماء، سترى طريقك إليّ.”'],
+      en: ['A cage woven from starlight... shimmering, unbreakable.', 'Naya: Stars don\'t imprison anyone... they show the way!', '"Rayan… look at the sky, it will lead you to me."'],
+    },
     { // قاعة مظلمة في القلعة
       ar: ['قاعة العرش المظلمة... آخر سجن.', 'ملك الظلال: أخوكِ لن يصل أبدًا!', 'نايا: بل سيصل... وأنا سأكون جاهزة. “ريان… أنا قادمة إليك أيضًا!”'],
       en: ['The dark throne hall... the final prison.', 'Shadow King: Your brother will never make it!', 'Naya: He will... and I\'ll be ready. "Rayan… I\'m coming to you too!"'],
@@ -60,7 +64,7 @@ window.RN = window.RN || {};
       this.finished = false;
       this.skipBtn = { x: RN.VW - 130, y: RN.VH - 54, w: 110, h: 38, label: RN.t('skip') };
     }
-    enter() { RN.Audio.setMusic(6, 'cine'); }
+    enter() { RN.Audio.setMusic('menu', 'cine'); }
     finish() {
       if (this.finished) return;
       this.finished = true;
@@ -107,12 +111,12 @@ window.RN = window.RN || {};
         'في قرية هادئة عند أطراف التلال، عاش ريان مع أخته الصغيرة نايا...',
         'في يومٍ مشمس، اكتشفا أطلالًا قديمة... وبوابة مختومة منذ آلاف السنين.',
         'انفتحت البوابة! وخرج منها ملك الظلال...',
-        'انقسم العالم إلى ستة عوالم... وبدأت رحلة ريان لإنقاذ أخته.',
+        'انقسم العالم إلى سبعة عوالم... وبدأت رحلة ريان لإنقاذ أخته.',
       ] : [
         'In a quiet village by the hills, Rayan lived with his little sister Naya...',
         'One sunny day they found ancient ruins... and a gate sealed for millennia.',
         'The gate burst open! The Shadow King emerged...',
-        'The world split into six realms... and Rayan\'s journey began.',
+        'The world split into seven realms... and Rayan\'s journey began.',
       ];
     }
 
@@ -399,7 +403,7 @@ window.RN = window.RN || {};
           ctx.fillText(RN.I18N.lang === 'ar' ? '!ريااااان' : 'RAYAAAN!', kingX - 30, kingY - 110 * kingScale);
         }
       } else {
-        /* ===== العوالم الستة + ريان ينطلق ===== */
+        /* ===== العوالم السبعة + ريان ينطلق ===== */
         this._movingSky(ctx, '#0d0a1e', '#2a1a4a', '#3a2a55', 1.5, true);
         // نجوم
         for (let i = 0; i < 50; i++) {
@@ -409,9 +413,9 @@ window.RN = window.RN || {};
           ctx.fillRect(sx2, sy2, 1.8, 1.8);
         }
         ctx.globalAlpha = 1;
-        const cols = ['#58b24d', '#e0b263', '#e9f6ff', '#e0562a', '#bfe3ff', '#8a5cff'];
-        for (let i = 0; i < 6; i++) {
-          const a = (i / 6) * Math.PI * 2 + this.t * 0.25;
+        const cols = ['#58b24d', '#e0b263', '#e9f6ff', '#e0562a', '#bfe3ff', '#ffd76a', '#8a5cff'];
+        for (let i = 0; i < cols.length; i++) {
+          const a = (i / cols.length) * Math.PI * 2 + this.t * 0.25;
           const ix = W / 2 + Math.cos(a) * 260;
           const iy = H / 2 - 30 + Math.sin(a) * 120;
           const iw = 58 + Math.sin(this.t + i) * 4;
@@ -522,6 +526,23 @@ window.RN = window.RN || {};
           ctx.beginPath(); ctx.moveTo(i * 24, 20); ctx.quadraticCurveTo(i * 26, -100, 0, -200); ctx.stroke();
         }
         ctx.beginPath(); ctx.ellipse(0, 20, 78, 14, 0, 0, 7); ctx.stroke();
+      } else if (wi === 5) { // قفص من ضوء النجوم
+        ctx.strokeStyle = 'rgba(255,222,120,0.85)';
+        ctx.lineWidth = 4; ctx.lineCap = 'round';
+        ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 10;
+        for (let i = -3; i <= 3; i++) {
+          ctx.globalAlpha = 0.65 + Math.sin(this.t * 3 + i) * 0.25;
+          ctx.beginPath(); ctx.moveTo(i * 24, 0); ctx.lineTo(i * 24, -165); ctx.stroke();
+        }
+        ctx.globalAlpha = 1; ctx.shadowBlur = 0;
+        // نجوم متلألئة تعلو القضبان الضوئية
+        ctx.fillStyle = '#fff2c0';
+        for (let i = -3; i <= 3; i++) {
+          const tw = 2.5 + Math.sin(this.t * 4 + i * 1.7) * 1.2;
+          ctx.save(); ctx.translate(i * 24, -172); ctx.rotate(this.t * 0.8 + i);
+          for (let k = 0; k < 4; k++) { ctx.rotate(Math.PI / 2); ctx.fillRect(-1, -tw - 2, 2, tw + 2); }
+          ctx.restore();
+        }
       } else { // قاعة مظلمة
         ctx.fillStyle = 'rgba(20,10,40,0.55)';
         ctx.fillRect(-RN.VW / 2, -RN.VH + 80, RN.VW, RN.VH);

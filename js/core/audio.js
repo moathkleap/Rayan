@@ -52,12 +52,14 @@ window.RN = window.RN || {};
       { tempo: 88, root: 246.9, scale: [0, 2, 3, 7, 10], bass: 'sine', lead: 'triangle', padHz: 123.5, name: 'ice' },      // خماسي صغير — بارد
       { tempo: 120, root: 207.7, scale: [0, 3, 5, 6, 7, 10], bass: 'sawtooth', lead: 'sawtooth', padHz: 103.8, name: 'volcano' }, // بلوز — خطر
       { tempo: 112, root: 261.6, scale: [0, 2, 4, 5, 7, 9, 11], bass: 'triangle', lead: 'sine', padHz: 130.8, name: 'sky' },  // كبير — سماوي
+      { tempo: 108, root: 277.2, scale: [0, 2, 4, 6, 7, 9, 11], bass: 'triangle', lead: 'sine', padHz: 138.6, name: 'stars' }, // ليدي — كوني حالم
       { tempo: 92, root: 196.0, scale: [0, 2, 3, 5, 7, 8, 10], bass: 'square', lead: 'sawtooth', padHz: 98, name: 'dark' },   // صغير — مظلم
       { tempo: 100, root: 261.6, scale: [0, 2, 4, 7, 9], bass: 'triangle', lead: 'sine', padHz: 130.8, name: 'menu' },
     ],
 
     setMusic(themeIndex, mode) {
       if (!this.ctx || !this.enabled) return;
+      if (themeIndex === 'menu') themeIndex = this.THEMES.length - 1; // لحن القائمة هو الأخير دائمًا
       const theme = this.THEMES[RN.U.clamp(themeIndex, 0, this.THEMES.length - 1)];
       if (this._theme === theme && this._mode === mode) return;
       this._theme = theme;
