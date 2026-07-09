@@ -8,6 +8,9 @@ window.RN = window.RN || {};
 (function () {
   const U = RN.U;
 
+  // طبقات ذيل المذنّب (ثابتة — خارج مسار الرسم لكل إطار)
+  const COMET_TAILS = [['rgba(120,200,255,0.35)', 0], ['rgba(255,230,150,0.3)', 1], ['rgba(255,255,255,0.22)', 2]];
+
   const BOSS_DEFS = [
     { id: 'spider', hp: 26, w: 110, h: 70, color: '#5a3a7a', touchDmg: 2 },
     { id: 'sandKing', hp: 30, w: 90, h: 110, color: '#c89a4a', touchDmg: 2 },
@@ -97,7 +100,7 @@ window.RN = window.RN || {};
         this.vulnerable = true;
         if (this.stun <= 0) { this.vulnerable = false; this.state = 'move'; this.timer = 0.6; }
       } else {
-        this['_b' + this.wi](scene, dt, px);
+        this['_' + this.def.id](scene, dt, px);
       }
       // ضرر التلامس
       if (!p.dead && U.aabb(this.hitbox(), p.box())) {
@@ -112,6 +115,20 @@ window.RN = window.RN || {};
       return false;
     }
 
+    // انقضاض نحو اللاعب حتى ملامسة الأرض ثم إجهاد (نافذة ضعف). يعيد true عند الارتطام.
+    _diveToward(dt, px, speed, shake, stunTime) {
+      const ang = Math.atan2((this.groundY - this.h) - this.y, px - this.x);
+      this.x += Math.cos(ang) * speed * dt;
+      this.y += Math.sin(ang) * speed * dt;
+      if (this.y >= this.groundY - this.h - 6) {
+        this.y = this.groundY - this.h;
+        RN.Engine.doShake(shake); RN.Audio.sfx('slam');
+        this.stun = stunTime;
+        return true;
+      }
+      return false;
+    }
+
     _spawnMinion(scene, type, x) {
       const alive = scene.enemies.filter((e) => !e.dead).length;
       if (alive < 3) {
@@ -121,8 +138,8 @@ window.RN = window.RN || {};
       }
     }
 
-    /* ========== 0: عنكبوت الغابة العملاق ========== */
-    _b0(scene, dt, px) {
+    /* ========== عنكبوت الغابة العملاق ========== */
+    _spider(scene, dt, px) {
       const ph = this.phase;
       switch (this.state) {
         case 'intro': if (this.timer <= 0) { this.state = 'move'; this.timer = 1.4; } break;
@@ -180,8 +197,8 @@ window.RN = window.RN || {};
       }
     }
 
-    /* ========== 1: ملك الرمال ========== */
-    _b1(scene, dt, px) {
+    /* ========== ملك الرمال ========== */
+    _sandKing(scene, dt, px) {
       const ph = this.phase;
       switch (this.state) {
         case 'intro': if (this.timer <= 0) { this.state = 'move'; this.timer = 1.2; } break;
@@ -222,8 +239,8 @@ window.RN = window.RN || {};
       this.x = U.clamp(this.x, 80, scene.level.w * 32 - 80 - this.w);
     }
 
-    /* ========== 2: التنين الجليدي ========== */
-    _b2(scene, dt, px) {
+    /* ========== التنين الجليدي ========== */
+    _iceDragon(scene, dt, px) {
       const ph = this.phase;
       const hoverY = this.groundY - 260;
       switch (this.state) {
@@ -276,8 +293,8 @@ window.RN = window.RN || {};
       this.x = U.clamp(this.x, 80, scene.level.w * 32 - 80 - this.w);
     }
 
-    /* ========== 3: وحش الحمم ========== */
-    _b3(scene, dt, px) {
+    /* ========== وحش الحمم ========== */
+    _lavaBeast(scene, dt, px) {
       const ph = this.phase;
       switch (this.state) {
         case 'intro': if (this.timer <= 0) { this.state = 'move'; this.timer = 1.2; } break;
@@ -330,8 +347,8 @@ window.RN = window.RN || {};
       }
     }
 
-    /* ========== 4: حارس السماء ========== */
-    _b4(scene, dt, px) {
+    /* ========== حارس السماء ========== */
+    _skyWarden(scene, dt, px) {
       const ph = this.phase;
       switch (this.state) {
         case 'intro': if (this.timer <= 0) { this.state = 'tele'; this.timer = 0.9; } break;
@@ -364,22 +381,13 @@ window.RN = window.RN || {};
           break;
         case 'dive': // انقضاض ثم إجهاد
           if (this.timer > 0) break;
-          this._diveT = (this._diveT || 0) + dt;
-          { const ang = Math.atan2((this.groundY - this.h) - this.y, px - this.x);
-            this.x += Math.cos(ang) * 460 * dt;
-            this.y += Math.sin(ang) * 460 * dt; }
-          if (this.y >= this.groundY - this.h - 6) {
-            this.y = this.groundY - this.h;
-            this._diveT = 0;
-            RN.Engine.doShake(6); RN.Audio.sfx('slam');
-            this.stun = 2.0;
-          }
+          this._diveToward(dt, px, 460, 6, 2.0);
           break;
       }
     }
 
-    /* ========== 5: المذنّب الأعظم ========== */
-    _b5(scene, dt, px) {
+    /* ========== المذنّب الأعظم ========== */
+    _cometTitan(scene, dt, px) {
       const ph = this.phase;
       switch (this.state) {
         case 'intro': if (this.timer <= 0) { this.state = 'orbit'; this.timer = 1.4; } break;
@@ -391,7 +399,8 @@ window.RN = window.RN || {};
           this.x += (tx - this.x) * Math.min(1, dt * 2.2);
           this.y = this.groundY - 240 + Math.sin(this._orbT * 2.3) * 40;
           if (this.timer <= 0) {
-            const opts = ph >= 3 ? ['meteors', 'burst', 'crash'] : ph === 2 ? ['meteors', 'crash'] : ['meteors'];
+            // 'crash' في كل الأطوار: هو المسار الوحيد إلى نافذة الضعف (stun)
+            const opts = ph >= 3 ? ['meteors', 'burst', 'crash'] : ph === 2 ? ['meteors', 'burst', 'crash'] : ['meteors', 'crash'];
             this.state = U.pick(opts);
             this.timer = this.state === 'meteors' ? 1.1 : this.state === 'burst' ? 0.9 : 0.7;
             if (this.state === 'meteors') {
@@ -428,21 +437,15 @@ window.RN = window.RN || {};
         }
         case 'crash': // ارتطام مذنّبي ثم خمود (نافذة الضعف)
           if (this.timer > 0) break;
-          { const ang = Math.atan2((this.groundY - this.h) - this.y, px - this.x);
-            this.x += Math.cos(ang) * 500 * dt;
-            this.y += Math.sin(ang) * 500 * dt; }
-          if (this.y >= this.groundY - this.h - 6) {
-            this.y = this.groundY - this.h;
-            RN.Engine.doShake(7); RN.Audio.sfx('slam');
+          if (this._diveToward(dt, px, 500, 7, 2.2)) {
             scene.particles.burst(this.x + this.w / 2, this.groundY - 10, 22, { color: '#ffe98a', speed: 220, size: 4, life: 0.6, glow: true });
-            this.stun = 2.2;
           }
           break;
       }
     }
 
-    /* ========== 6: ملك الظلال ========== */
-    _b6(scene, dt, px) {
+    /* ========== ملك الظلال ========== */
+    _shadowKing(scene, dt, px) {
       const ph = this.phase;
       scene.darkVeil = ph >= 2 ? (ph >= 3 ? 0.55 : 0.35) : 0.15; // تضييق الرؤية
       switch (this.state) {
@@ -513,8 +516,8 @@ window.RN = window.RN || {};
       const w = this.w, h = this.h;
       const wob = Math.sin(this.animT * 4) * 3;
 
-      switch (this.wi) {
-        case 0: { // العنكبوت
+      switch (this.def.id) {
+        case 'spider': { // العنكبوت
           // أرجل ×4 لكل جانب
           ctx.strokeStyle = cd; ctx.lineWidth = 6; ctx.lineCap = 'round';
           for (let s = -1; s <= 1; s += 2) {
@@ -546,7 +549,7 @@ window.RN = window.RN || {};
           ctx.beginPath(); ctx.moveTo(w * 0.42, -h * 0.25); ctx.lineTo(w * 0.46, -h * 0.1); ctx.lineTo(w * 0.5, -h * 0.25); ctx.closePath(); ctx.fill();
           break;
         }
-        case 1: { // ملك الرمال
+        case 'sandKing': { // ملك الرمال
           // جسد رملي متصاعد
           ctx.fillStyle = c;
           ctx.beginPath();
@@ -575,7 +578,7 @@ window.RN = window.RN || {};
           ctx.beginPath(); ctx.moveTo(w * 0.4, -h * 0.5); ctx.quadraticCurveTo(w * 0.7, -h * 0.4 - wob, w * 0.6, -h * 0.15); ctx.stroke();
           break;
         }
-        case 2: { // التنين الجليدي
+        case 'iceDragon': { // التنين الجليدي
           const flap = Math.sin(this.animT * 5) * 0.5;
           // جناحان
           ctx.fillStyle = U.alpha('#bfe0f8', 0.85);
@@ -615,7 +618,7 @@ window.RN = window.RN || {};
           ctx.quadraticCurveTo(-w * 0.65, -h * 0.3 + wob, -w * 0.6, -h * 0.1 + wob); ctx.stroke();
           break;
         }
-        case 3: { // وحش الحمم
+        case 'lavaBeast': { // وحش الحمم
           // جسد صخري متشقق بحمم
           ctx.fillStyle = c;
           ctx.beginPath();
@@ -650,7 +653,7 @@ window.RN = window.RN || {};
           ctx.beginPath(); ctx.ellipse(2, -h * 0.55 + wob, 14, 6 + Math.sin(time * 5) * 2, 0, 0, 7); ctx.fill();
           break;
         }
-        case 4: { // حارس السماء
+        case 'skyWarden': { // حارس السماء
           // جسد طائر بعباءة غيوم
           ctx.fillStyle = U.alpha('#e8f2ff', 0.9);
           ctx.beginPath(); ctx.ellipse(0, -h * 0.18, w * 0.45, h * 0.16, 0, 0, 7); ctx.fill();
@@ -682,11 +685,10 @@ window.RN = window.RN || {};
           ctx.shadowBlur = 0;
           break;
         }
-        case 5: { // المذنّب الأعظم
+        case 'cometTitan': { // المذنّب الأعظم
           // ذيل متوهج خلف الرأس
           ctx.globalCompositeOperation = 'screen';
-          const tails = [['rgba(120,200,255,0.35)', 0], ['rgba(255,230,150,0.3)', 1], ['rgba(255,255,255,0.22)', 2]];
-          for (const [tc, i] of tails) {
+          for (const [tc, i] of COMET_TAILS) {
             ctx.fillStyle = tc;
             ctx.beginPath();
             ctx.moveTo(-w * 0.1, -h * 0.75 + i * 8);
@@ -719,7 +721,7 @@ window.RN = window.RN || {};
           this._beye(ctx, w * 0.4, -h * 0.55, 4, this.vulnerable ? '#ffd24a' : '#7ae0ff');
           break;
         }
-        case 6: { // ملك الظلال
+        case 'shadowKing': { // ملك الظلال
           RN.Chars.drawShadowKing(ctx, 0, 0, this.animT, Math.max(1, w / 76));
           // هالة ضعف
           if (this.vulnerable) {

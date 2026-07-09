@@ -8,6 +8,17 @@ window.RN = window.RN || {};
 (function () {
   const U = RN.U;
 
+  // تلوين سينمائي (توقفان: إضاءة علوية وظل سفلي) بمعرف العالم
+  const GRADES = {
+    forest: ['rgba(255,214,140,0.10)', 'rgba(30,90,60,0.12)'],
+    desert: ['rgba(255,190,90,0.16)', 'rgba(150,80,30,0.10)'],
+    ice: ['rgba(190,225,255,0.14)', 'rgba(40,80,150,0.12)'],
+    volcano: ['rgba(255,120,50,0.16)', 'rgba(90,20,20,0.16)'],
+    sky: ['rgba(220,240,255,0.12)', 'rgba(50,90,180,0.10)'],
+    stars: ['rgba(190,205,255,0.12)', 'rgba(25,25,80,0.16)'],
+    dark: ['rgba(150,90,255,0.12)', 'rgba(20,10,50,0.2)'],
+  };
+
   class LevelScene {
     constructor(wi, li) {
       this.wi = wi;
@@ -432,15 +443,7 @@ window.RN = window.RN || {};
       /* ---- تدريج لوني سينمائي (Cinematic Grade) ---- */
       // طبقة تباين دافئ/بارد حسب العالم
       ctx.globalCompositeOperation = 'overlay';
-      const GRADES = [
-        ['rgba(255,214,140,0.10)', 'rgba(30,90,60,0.12)'],
-        ['rgba(255,190,90,0.16)', 'rgba(150,80,30,0.10)'],
-        ['rgba(190,225,255,0.14)', 'rgba(40,80,150,0.12)'],
-        ['rgba(255,120,50,0.16)', 'rgba(90,20,20,0.16)'],
-        ['rgba(220,240,255,0.12)', 'rgba(50,90,180,0.10)'],
-        ['rgba(150,90,255,0.12)', 'rgba(20,10,50,0.2)'],
-      ];
-      const gr = GRADES[this.wi];
+      const gr = GRADES[RN.C.WORLDS[this.wi].id] || GRADES.forest;
       const cg = ctx.createLinearGradient(0, 0, 0, RN.VH);
       cg.addColorStop(0, gr[0]);
       cg.addColorStop(1, gr[1]);

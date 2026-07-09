@@ -298,7 +298,7 @@ window.RN = window.RN || {};
   /* ============ خريطة العوالم واختيار المراحل ============ */
   class WorldMapScene {
     constructor(focusWorld) {
-      this.focus = U.clamp(focusWorld || 0, 0, 5);
+      this.focus = U.clamp(focusWorld || 0, 0, RN.C.WORLD_COUNT - 1);
       this.openWorld = -1;
     }
     enter() {
@@ -337,10 +337,16 @@ window.RN = window.RN || {};
       ];
 
       if (this.openWorld < 0) {
-        // بطاقات العوالم على صفين (4 + 3) على مسار متعرج
-        const cardPos = (w) => w < 4
-          ? { x: 126 + w * 236, y: 150 }
-          : { x: 244 + (w - 4) * 236, y: 315 };
+        // بطاقات العوالم على صفين متوازنين (مشتقة من WORLD_COUNT) على مسار متعرج
+        const cardPos = (w) => {
+          const total = RN.C.WORLD_COUNT;
+          const topN = Math.ceil(total / 2);
+          const row = w < topN ? 0 : 1;
+          const n = row === 0 ? topN : total - topN;
+          const i = row === 0 ? w : w - topN;
+          const step = Math.min(236, (RN.VW - 30) / n);
+          return { x: RN.VW / 2 + (i - (n - 1) / 2) * step, y: 150 + row * 165 };
+        };
         for (let w = 0; w < RN.C.WORLD_COUNT; w++) {
           const { x: cx, y: cy } = cardPos(w);
           const unlocked = w <= sd.world;

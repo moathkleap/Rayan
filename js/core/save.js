@@ -9,8 +9,37 @@ window.RN = window.RN || {};
   const KEY_SETTINGS = 'rayan_naya_v1_settings';
   const PROFILE_COUNT = 3;
 
+  // نسخة تخطيط العوالم داخل الملف: 2 = بعد إدراج عالم النجوم عند الفهرس 5
+  const WORLDS_VER = 2;
+
+  /* ترحيل ملفات ما قبل إدراج عالم النجوم: كان العالم المظلم عند الفهرس 5
+     وأصبح عند 6، فتُزاح كل البيانات المفهرسة بالعالم لتحافظ على معناها. */
+  function migrateProfile(p) {
+    if (!p || typeof p !== 'object' || (p.worldsVer || 1) >= WORLDS_VER) return p;
+    const shift = (w) => (w >= 5 ? w + 1 : w);
+    if (typeof p.world === 'number') p.world = shift(p.world);
+    for (const f of ['stars', 'bestTimes', 'secrets']) {
+      const src = p[f], out = {};
+      if (!src) continue;
+      for (const k in src) {
+        const dash = k.indexOf('-');
+        out[shift(+k.slice(0, dash)) + k.slice(dash)] = src[k];
+      }
+      p[f] = out;
+    }
+    // القطع الأثرية: العالم المظلم القديم أنتج المعرفين 10 و11 → 12 و13
+    if (Array.isArray(p.relics)) p.relics = p.relics.map((r) => (r >= 10 ? r + 2 : r));
+    if (Array.isArray(p.achievements)) {
+      p.achievements = p.achievements.map((id) =>
+        id.replace(/^(star3|world|bossnohit|nodeath)_5(_|$)/, '$1_6$2'));
+    }
+    p.worldsVer = WORLDS_VER;
+    return p;
+  }
+
   function defaultProfile() {
     return {
+      worldsVer: WORLDS_VER,
       created: 0,
       playTime: 0,
       world: 0,            // آخر عالم مفتوح
@@ -70,7 +99,7 @@ window.RN = window.RN || {};
       for (let i = 0; i < PROFILE_COUNT; i++) {
         try {
           const raw = localStorage.getItem(KEY_PREFIX + i);
-          out.push(raw ? JSON.parse(raw) : null);
+          out.push(raw ? migrateProfile(JSON.parse(raw)) : null);
         } catch (e) { out.push(null); }
       }
       return out;
@@ -80,7 +109,7 @@ window.RN = window.RN || {};
       this.profileIndex = i;
       try {
         const raw = localStorage.getItem(KEY_PREFIX + i);
-        this.data = raw ? Object.assign(defaultProfile(), JSON.parse(raw)) : defaultProfile();
+        this.data = raw ? Object.assign(defaultProfile(), migrateProfile(JSON.parse(raw))) : defaultProfile();
       } catch (e) { this.data = defaultProfile(); }
       if (!this.data.created) this.data.created = Date.now();
       return this.data;
@@ -122,7 +151,7 @@ window.RN = window.RN || {};
       try {
         const obj = JSON.parse(decodeURIComponent(escape(atob(code.trim()))));
         if (typeof obj !== 'object' || obj === null) return false;
-        this.data = Object.assign(defaultProfile(), obj);
+        this.data = Object.assign(defaultProfile(), migrateProfile(obj));
         this.commit(true);
         return true;
       } catch (e) { return false; }

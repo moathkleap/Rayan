@@ -16,16 +16,18 @@ window.RN = window.RN || {};
     }
   }
   // --- إكمال العوالم (7) ---
-  const WAR = ['الغابة السحرية', 'الصحراء القديمة', 'عالم الجليد', 'أرض البراكين', 'ممالك السماء', 'عالم النجوم', 'العالم المظلم'];
-  const WEN = ['Enchanted Forest', 'Ancient Desert', 'Frozen Realm', 'Volcano Lands', 'Sky Kingdoms', 'Star World', 'Dark World'];
+  // أسماء العوالم من مصدر الترجمة الواحد بدل نسخة مكررة تنجرف عند التعديل
+  const WORLD_NAMES = RN.I18N.both('worlds');
+  const WAR = WORLD_NAMES.ar, WEN = WORLD_NAMES.en;
   for (let w = 0; w < WCOUNT; w++) add(`world_${w}`, `بطل ${WAR[w]}`, `Hero of ${WEN[w]}`);
   // --- زعيم دون ضربة (7) ---
   const BAR = ['العنكبوت', 'ملك الرمال', 'التنين الجليدي', 'وحش الحمم', 'حارس السماء', 'المذنّب الأعظم', 'ملك الظلال'];
   for (let w = 0; w < WCOUNT; w++) add(`bossnohit_${w}`, `بلا خدش: اهزم ${BAR[w]} دون إصابة`, `Untouched: beat boss ${w + 1} without damage`);
   // --- عالم دون موت (7) ---
   for (let w = 0; w < WCOUNT; w++) add(`nodeath_${w}`, `روح لا تُقهر: أنهِ ${WAR[w]} دون خسارة`, `Deathless: finish ${WEN[w]} without dying`);
-  // --- الذكريات (12 + 1) ---
-  for (let i = 0; i < 12; i++) add(`relic_${i}`, `ذكرى مستعادة ${i + 1}/12`, `Memory restored ${i + 1}/12`);
+  // --- الذكريات (قطعتان لكل عالم + 1) ---
+  const RELIC_COUNT = WCOUNT * 2;
+  for (let i = 0; i < RELIC_COUNT; i++) add(`relic_${i}`, `ذكرى مستعادة ${i + 1}/${RELIC_COUNT}`, `Memory restored ${i + 1}/${RELIC_COUNT}`);
   add('relics_all', 'ألبوم العائلة: اجمع كل الذكريات', 'Family album: collect all memories');
   // --- كريستالات تراكمية (5) ---
   for (const [n, ar] of [[100, 'جامع مبتدئ'], [500, 'جامع ماهر'], [1000, 'ثري الكريستال'], [2500, 'ملك الكريستال'], [5000, 'أسطورة الكريستال']]) {
@@ -100,7 +102,7 @@ window.RN = window.RN || {};
       for (const k in s.stars) stars += s.stars[k];
       if (stars >= 50) this.unlock('stars_50');
       if (stars >= RN.C.WORLD_COUNT * 24) this.unlock('stars_144');
-      if (s.relics.length >= 12) this.unlock('relics_all');
+      if (s.relics.length >= RN.C.WORLD_COUNT * 2) this.unlock('relics_all');
       const ab = s.abilities;
       if (ab.doubleJump && ab.dash && ab.wallJump && ab.glide && ab.slam && ab.shot && ab.timeSlow) this.unlock('abilities_all');
       const up = s.upgrades;

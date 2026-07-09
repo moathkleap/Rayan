@@ -59,8 +59,11 @@ window.RN = window.RN || {};
 
     setMusic(themeIndex, mode) {
       if (!this.ctx || !this.enabled) return;
-      if (themeIndex === 'menu') themeIndex = this.THEMES.length - 1; // لحن القائمة هو الأخير دائمًا
-      const theme = this.THEMES[RN.U.clamp(themeIndex, 0, this.THEMES.length - 1)];
+      // يقبل فهرس عالم أو اسم ثيم؛ الربط بمعرف العالم يحمي من إزاحة الفهارس عند إدراج عالم
+      const name = typeof themeIndex === 'string'
+        ? themeIndex
+        : (RN.C.WORLDS[themeIndex] ? RN.C.WORLDS[themeIndex].id : 'menu');
+      const theme = this.THEMES.find((t) => t.name === name) || this.THEMES[this.THEMES.length - 1];
       if (this._theme === theme && this._mode === mode) return;
       this._theme = theme;
       this._mode = mode || 'explore';
