@@ -96,6 +96,7 @@ window.RN = window.RN || {};
         case 'embers': return { x, y: RN.VH + 10 - (anywhere ? U.rand(0, RN.VH) : 0), vx: U.rand(-15, 15), vy: U.rand(-70, -30), size: U.rand(1.5, 3), rot: 0, vr: 0, c: U.pick(['#ff8a3a', '#ffb84a', '#ff5a2a']) };
         case 'wind': return { x, y, vx: U.rand(-320, -180), vy: U.rand(-15, 15), size: U.rand(8, 22), rot: 0, vr: 0, c: 'rgba(255,255,255,0.25)', streak: true };
         case 'shadowMist': return { x, y, vx: U.rand(-20, 20), vy: U.rand(-12, 12), size: U.rand(15, 40), rot: 0, vr: 0, c: 'rgba(90,50,160,0.08)' };
+        case 'stardust': return { x, y, vx: U.rand(-14, 14), vy: U.rand(10, 32), size: U.rand(1, 2.4), rot: 0, vr: 0, c: U.pick(['#ffe98a', '#bcd8ff', '#ffffff', '#d8b8ff']) };
         case 'rain': return { x, y, vx: -60, vy: U.rand(380, 480), size: U.rand(6, 11), rot: 0, vr: 0, c: 'rgba(160,200,255,0.5)', streak: true };
         default: return { x, y, vx: 0, vy: 10, size: 2, rot: 0, vr: 0, c: '#fff' };
       }
@@ -105,6 +106,7 @@ window.RN = window.RN || {};
         p.x += p.vx * dt; p.y += p.vy * dt; p.rot += (p.vr || 0) * dt;
         if (this.type === 'leaves') p.x += Math.sin(RN.Engine.time * 2 + p.y * 0.02) * 25 * dt;
         if (this.type === 'snow') p.x += Math.sin(RN.Engine.time * 1.5 + p.y * 0.03) * 20 * dt;
+        if (this.type === 'stardust') p.x += Math.sin(RN.Engine.time * 1.2 + p.y * 0.04) * 14 * dt;
         if (p.y > RN.VH + 15 || p.y < -50 || p.x < -50 || p.x > RN.VW + 50) {
           Object.assign(p, this._make(false));
           if (p.vx < -100) p.x = RN.VW + 10; // عواصف تدخل من اليمين

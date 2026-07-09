@@ -186,12 +186,19 @@ window.RN = window.RN || {};
         ctx.beginPath(); ctx.arc(rng() * SIZE, 4 + rng() * 8, 1.4, 0, 7); ctx.fill();
       }
       ctx.globalAlpha = 1;
-    } else if (wi === 5) { // نقوش سحرية باهتة
+    } else if (RN.C.WORLDS[wi].id === 'dark') { // نقوش سحرية باهتة
       ctx.strokeStyle = 'rgba(160,110,255,0.4)';
       ctx.lineWidth = 1.2;
       ctx.beginPath();
       ctx.arc(SIZE / 2 + (rng() - 0.5) * 20, 8, 3 + rng() * 2, 0, 7);
       ctx.stroke();
+    } else if (RN.C.WORLDS[wi].id === 'stars') { // بريق نجمي على السطح
+      ctx.fillStyle = 'rgba(255,232,150,0.75)';
+      for (let i = 0; i < 3; i++) {
+        const sx = rng() * SIZE, sy = 3 + rng() * 9;
+        ctx.fillRect(sx - 2.5, sy - 0.6, 5, 1.2);
+        ctx.fillRect(sx - 0.6, sy - 2.5, 1.2, 5);
+      }
     }
     return c;
   }
@@ -255,9 +262,12 @@ window.RN = window.RN || {};
       ctx.globalAlpha = 1;
       ctx.fillStyle = 'rgba(255,255,255,0.35)';
       ctx.fillRect(3, 5, SIZE - 6, 3);
-      if (wi === 5) { // توهج روني
+      if (RN.C.WORLDS[wi].id === 'dark') { // توهج روني
         ctx.fillStyle = 'rgba(160,110,255,0.5)';
         ctx.beginPath(); ctx.arc(SIZE / 2, 17, 3, 0, 7); ctx.fill();
+      } else if (RN.C.WORLDS[wi].id === 'stars') { // توهج نجمي
+        ctx.fillStyle = 'rgba(255,222,120,0.6)';
+        ctx.beginPath(); ctx.arc(SIZE / 2, 17, 2.6, 0, 7); ctx.fill();
       }
     }
     return c;

@@ -1,5 +1,5 @@
 /* Rayan & Naya — Service Worker: تشغيل دون اتصال */
-const CACHE = 'rayan-naya-v2';
+const CACHE = 'rayan-naya-v3';
 const ASSETS = [
   './',
   './index.html',

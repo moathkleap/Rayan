@@ -8,7 +8,7 @@ window.RN = window.RN || {};
   const C = {};
 
   C.TILE = 32;
-  C.WORLD_COUNT = 6;
+  C.WORLD_COUNT = 7;
   C.LEVELS_PER_WORLD = 8; // المرحلة 8 هي مواجهة الزعيم
 
   // أنواع البلاطات
@@ -60,6 +60,14 @@ window.RN = window.RN || {};
       puzzles: ['leverBridge', 'button', 'box'],
     },
     {
+      id: 'stars',
+      sky: ['#0f1440', '#3a4a8e'], far: '#2a3470', mid: '#3c4a90', ground: '#2e2c58',
+      groundTop: '#7a74d8', accent: '#ffd76a', weather: 'stardust', fog: 'rgba(120,130,230,0.18)',
+      hazard: 'void', liquid: '#4a3aa8',
+      enemies: ['starWisp', 'cometHawk', 'nebulaJelly', 'starSentinel'],
+      puzzles: ['keyDoor', 'leverBridge', 'button'],
+    },
+    {
       id: 'dark',
       sky: ['#0d0a1e', '#2a1a4a'], far: '#241a45', mid: '#352a5c', ground: '#2c2440',
       groundTop: '#4a3d6e', accent: '#8a5cff', weather: 'shadowMist', fog: 'rgba(40,20,80,0.4)',
@@ -78,7 +86,7 @@ window.RN = window.RN || {};
   ];
 
   // القدرة المكتسبة بعد هزيمة زعيم كل عالم
-  C.ABILITY_UNLOCKS = ['doubleJump', 'dash', 'wallJump', 'glide', 'slam', null];
+  C.ABILITY_UNLOCKS = ['doubleJump', 'dash', 'wallJump', 'glide', 'slam', null, null];
   // قدرات تُشترى من المتجر
   C.SHOP_ABILITIES = [
     { id: 'shot', cost: 250 },

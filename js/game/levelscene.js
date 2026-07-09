@@ -43,7 +43,8 @@ window.RN = window.RN || {};
       this.safeY = this.level.spawn.y;
       this.playerStyle = { stomps: 0, slashes: 0 };
       this.windX = 0;
-      this.darkVeil = this.wi === 5 && !this.level.isBoss ? 0.25 : 0;
+      this.isDarkWorld = RN.C.WORLDS[this.wi].id === 'dark';
+      this.darkVeil = this.isDarkWorld && !this.level.isBoss ? 0.25 : 0;
       this.toasts = [];
       this.paused = false;
       this.finished = false;
@@ -302,7 +303,7 @@ window.RN = window.RN || {};
         sd.world = this.wi + 1;
         sd.level = 0;
       }
-      if (this.wi === 5) {
+      if (this.wi === RN.C.WORLD_COUNT - 1) {
         sd.finished = true;
         RN.Achievements.unlock('game_done');
         if (RN.Save.settings.difficulty === 3) RN.Achievements.unlock('nightmare_done');
@@ -354,7 +355,7 @@ window.RN = window.RN || {};
       RN.Engine.slowmo = 1;
       if (this.results && this.results.boss) {
         // مشهد سينمائي: سجن نايا التالي أو النهاية
-        if (this.wi < 5) {
+        if (this.wi < RN.C.WORLD_COUNT - 1) {
           const nextW = this.wi + 1;
           RN.Engine.setScene(new RN.Cine.PrisonScene(nextW, () => {
             RN.Engine.setScene(new RN.Scenes.WorldMapScene(nextW));
@@ -449,7 +450,7 @@ window.RN = window.RN || {};
       // Vignette ناعمة
       const vg = ctx.createRadialGradient(RN.VW / 2, RN.VH / 2, RN.VH * 0.52, RN.VW / 2, RN.VH / 2, RN.VH * 1.08);
       vg.addColorStop(0, 'rgba(0,0,20,0)');
-      vg.addColorStop(1, `rgba(0,0,20,${this.wi === 5 ? 0.42 : 0.26})`);
+      vg.addColorStop(1, `rgba(0,0,20,${this.isDarkWorld ? 0.42 : 0.26})`);
       ctx.fillStyle = vg;
       ctx.fillRect(0, 0, RN.VW, RN.VH);
 

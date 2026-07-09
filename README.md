@@ -1,6 +1,6 @@
 # ريان ونايا — Rayan & Naya 🎮
 
-**مغامرة العوالم الستة** — لعبة منصات ومغامرات ثنائية الأبعاد أصلية بالكامل، عربية الواجهة (مع دعم الإنجليزية)، مبنية بتقنيات الويب القياسية (HTML5 Canvas + WebAudio) دون أي مكتبات خارجية — تعمل على المتصفح، أندرويد، iOS، ويندوز، وماك.
+**مغامرة العوالم السبعة** — لعبة منصات ومغامرات ثنائية الأبعاد أصلية بالكامل، عربية الواجهة (مع دعم الإنجليزية)، مبنية بتقنيات الويب القياسية (HTML5 Canvas + WebAudio) دون أي مكتبات خارجية — تعمل على المتصفح، أندرويد، iOS، ويندوز، وماك.
 
 <p align="center"><img src="icon.svg" width="120" alt="Rayan & Naya"></p>
 
@@ -10,7 +10,7 @@
 
 ## القصة
 
-ريان فتى شجاع يعشق المغامرات، يعيش مع أخته الصغيرة نايا في قرية هادئة. أثناء استكشافهما أطلالًا قديمة يعثران على بوابة أسطورية مختومة، تخرج منها قوة مظلمة يقودها **ملك الظلال** الذي يختطف نايا ويقسم العالم إلى ستة عوالم. يبدأ ريان رحلته لإنقاذ أخته — التي لا تنتظر الإنقاذ مكتوفة اليدين، بل تحاول الهرب وتحل الألغاز من داخل أسرها.
+ريان فتى شجاع يعشق المغامرات، يعيش مع أخته الصغيرة نايا في قرية هادئة. أثناء استكشافهما أطلالًا قديمة يعثران على بوابة أسطورية مختومة، تخرج منها قوة مظلمة يقودها **ملك الظلال** الذي يختطف نايا ويقسم العالم إلى سبعة عوالم. يبدأ ريان رحلته لإنقاذ أخته — التي لا تنتظر الإنقاذ مكتوفة اليدين، بل تحاول الهرب وتحل الألغاز من داخل أسرها.
 
 ## التشغيل
 
@@ -29,15 +29,15 @@ python3 -m http.server 8000
 
 | النظام | التفاصيل |
 |---|---|
-| **العوالم** | 6 عوالم بهوية بصرية وموسيقية مستقلة: الغابة السحرية، الصحراء القديمة، الجليد، البراكين، السماء، العالم المظلم |
-| **المراحل** | 48 مرحلة (8 لكل عالم، الثامنة مواجهة زعيم) مولّدة ببذور ثابتة وصعوبة متدرجة |
-| **الزعماء** | 6 زعماء بثلاثة أطوار قتال، هجمات مُنذَرة، نوافذ ضعف مختلفة، ومقدمات سينمائية |
-| **الأعداء** | 24 نوعًا أصليًا بسلوكيات ذكاء اصطناعي مختلفة: دوريات، مطاردة، هروب، كمائن، قطيع متعاون، قنص، انتقال آني، وتكيّف مع أسلوب اللاعب |
+| **العوالم** | 7 عوالم بهوية بصرية وموسيقية مستقلة: الغابة السحرية، الصحراء القديمة، الجليد، البراكين، السماء، النجوم، العالم المظلم |
+| **المراحل** | 56 مرحلة (8 لكل عالم، الثامنة مواجهة زعيم) مولّدة ببذور ثابتة وصعوبة متدرجة |
+| **الزعماء** | 7 زعماء بثلاثة أطوار قتال، هجمات مُنذَرة، نوافذ ضعف مختلفة، ومقدمات سينمائية |
+| **الأعداء** | 28 نوعًا أصليًا بسلوكيات ذكاء اصطناعي مختلفة: دوريات، مطاردة، هروب، كمائن، قطيع متعاون، قنص، انتقال آني، وتكيّف مع أسلوب اللاعب |
 | **القدرات** | قفزة مزدوجة، اندفاع، قفزة/تسلق الجدار، انزلاق هوائي، ضربة أرضية (تُكتسب من الزعماء) + قذيفة الطاقة وإبطاء الزمن (من المتجر) |
 | **القوى المؤقتة** | كرة نار، برق، تجميد، درع، مضاعفة قوة/سرعة، مغناطيس، حصانة |
 | **الألغاز** | مفاتيح وأبواب، روافع تبني جسورًا، أزرار موقوتة، دفع صناديق على لوحات ضغط، إشعال مشاعل، مرايا وشعاع ليزر |
 | **الأسرار** | غرف مخفية خلف جدران قابلة للكسر، صناديق كنوز، و12 قطعة أثرية تفتح **مشاهد ذكريات** عاطفية بين ريان ونايا |
-| **المشاهد** | مقدمة قصصية، مشهد سجن نايا قبل كل عالم (قفص خشبي/كريستالي/جليدي/بركاني/طائر/قاعة مظلمة)، نهاية بتلميح لجزء ثانٍ — كلها قابلة للتخطي |
+| **المشاهد** | مقدمة قصصية، مشهد سجن نايا قبل كل عالم (قفص خشبي/كريستالي/جليدي/بركاني/طائر/ضوء النجوم/قاعة مظلمة)، نهاية بتلميح لجزء ثانٍ — كلها قابلة للتخطي |
 | **النجوم** | ⭐⭐⭐ لكل مرحلة حسب الوقت والكريستالات والضربات والأسرار |
 | **الإنجازات** | 110+ إنجاز |
 | **المتجر** | 6 ملابس لريان (بلوحات ألوان تنعكس على الرسم)، 5 لنايا، تطويرات (قلوب/طاقة/مغناطيس) |
@@ -77,10 +77,10 @@ js/
     ├── characters.js رسم ريان ونايا وملك الظلال
     ├── particles.js  جزيئات + طقس لكل عالم
     ├── background.js Parallax متعدد الطبقات
-    ├── levelgen.js   مولّد الـ48 مرحلة + ساحات الزعماء + الرسم
+    ├── levelgen.js   مولّد الـ56 مرحلة + ساحات الزعماء + الرسم
     ├── entities.js   كيانات تفاعلية (30+ نوعًا) + مقذوفات
-    ├── enemies.js    24 عدوًا بسلوكيات AI
-    ├── bosses.js     6 زعماء بثلاثة أطوار
+    ├── enemies.js    28 عدوًا بسلوكيات AI
+    ├── bosses.js     7 زعماء بثلاثة أطوار
     ├── player.js     تحكم ريان وكل القدرات
     ├── achievements.js 110+ إنجاز
     ├── hud.js        واجهة اللعب + مكوّنات UI
@@ -109,4 +109,4 @@ js/
 
 ## English Summary
 
-**Rayan & Naya** is a fully original 2D platform-adventure built with vanilla HTML5 Canvas + WebAudio (zero dependencies). 6 themed worlds × 8 levels, 6 three-phase bosses, 24 enemy types with distinct AI (patrol/chase/flee/ambush/pack/adaptive), earnable abilities (double jump, dash, wall jump, glide, slam, energy shot, time-slow), puzzles (keys, levers, timed buttons, push-boxes, torches, mirrors), secrets & 12 collectible memories, 110+ achievements, shop with outfits & upgrades, dynamic procedural music, cinematic cutscenes, 4 difficulty modes, accessibility options, multi-profile save with export/import, touch + keyboard + gamepad, Arabic/English UI. Open `index.html` to play; package with Capacitor (Android/iOS) or Tauri/Electron (desktop).
+**Rayan & Naya** is a fully original 2D platform-adventure built with vanilla HTML5 Canvas + WebAudio (zero dependencies). 7 themed worlds × 8 levels, 7 three-phase bosses, 28 enemy types with distinct AI (patrol/chase/flee/ambush/pack/adaptive), earnable abilities (double jump, dash, wall jump, glide, slam, energy shot, time-slow), puzzles (keys, levers, timed buttons, push-boxes, torches, mirrors), secrets & 12 collectible memories, 110+ achievements, shop with outfits & upgrades, dynamic procedural music, cinematic cutscenes, 4 difficulty modes, accessibility options, multi-profile save with export/import, touch + keyboard + gamepad, Arabic/English UI. Open `index.html` to play; package with Capacitor (Android/iOS) or Tauri/Electron (desktop).

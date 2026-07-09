@@ -29,7 +29,7 @@ window.RN = window.RN || {};
       for (let i = 0; i < 70; i++) {
         this.grass.push({ x: (i / 70) * RN.VW + rng() * 12, h: 10 + rng() * 16, ph: rng() * 7, tone: rng() });
       }
-      RN.Audio.setMusic(6, 'explore');
+      RN.Audio.setMusic('menu', 'explore');
     }
     update(dt, rawDt) {
       this.t += rawDt;
@@ -257,7 +257,7 @@ window.RN = window.RN || {};
           ctx.fillStyle = '#ffffff';
           ctx.font = `${RN.UI.fontPx(13)}px sans-serif`;
           let stars = 0; for (const k in p.stars) stars += p.stars[k];
-          ctx.fillText(`${RN.t('worlds')[Math.min(5, p.world)]}`, cx, cy + 155);
+          ctx.fillText(`${RN.t('worlds')[Math.min(RN.C.WORLD_COUNT - 1, p.world)]}`, cx, cy + 155);
           ctx.fillText(U.ltr(`⭐ ${stars}   💎 ${p.crystals}`), cx, cy + 180);
           this.buttons.push({ x: cx - 75, y: cy + 200, w: 150, h: 38, label: RN.t('play'), primary: true, act: 'load', idx: i, fs: 15 });
           this.buttons.push({ x: cx - 75, y: cy + 242, w: 150, h: 22, label: this.confirmDelete === i ? RN.t('confirmOverwrite') : '🗑', act: 'del', idx: i, fs: 11 });
@@ -304,7 +304,7 @@ window.RN = window.RN || {};
     enter() {
       this.t = 0;
       this.bg = new RN.Background(this.focus, 99);
-      RN.Audio.setMusic(6, 'explore');
+      RN.Audio.setMusic('menu', 'explore');
     }
     update(dt, rawDt) { this.t += rawDt; RN.Achievements.update(rawDt); }
     render(ctx) {
@@ -337,51 +337,52 @@ window.RN = window.RN || {};
       ];
 
       if (this.openWorld < 0) {
-        // بطاقات العوالم على مسار متعرج
-        for (let w = 0; w < 6; w++) {
-          const col = w % 3, row = Math.floor(w / 3);
-          const cx = 190 + col * 290, cy = 150 + row * 165;
+        // بطاقات العوالم على صفين (4 + 3) على مسار متعرج
+        const cardPos = (w) => w < 4
+          ? { x: 126 + w * 236, y: 150 }
+          : { x: 244 + (w - 4) * 236, y: 315 };
+        for (let w = 0; w < RN.C.WORLD_COUNT; w++) {
+          const { x: cx, y: cy } = cardPos(w);
           const unlocked = w <= sd.world;
           const wc = RN.C.WORLDS[w];
           // خط المسار
-          if (w < 5) {
-            const ncol = (w + 1) % 3, nrow = Math.floor((w + 1) / 3);
-            const nx = 190 + ncol * 290, ny = 150 + nrow * 165;
+          if (w < RN.C.WORLD_COUNT - 1) {
+            const np = cardPos(w + 1);
             ctx.strokeStyle = w < sd.world ? '#ffd700' : 'rgba(255,255,255,0.25)';
             ctx.lineWidth = 4;
             ctx.setLineDash([2, 10]);
-            ctx.beginPath(); ctx.moveTo(cx, cy + 55); ctx.lineTo(nx, ny + 55); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx, cy + 55); ctx.lineTo(np.x, np.y + 55); ctx.stroke();
             ctx.setLineDash([]);
           }
           // البطاقة
           ctx.fillStyle = unlocked ? U.alpha(wc.mid, 0.92) : 'rgba(40,44,60,0.9)';
-          U.roundRect(ctx, cx - 120, cy, 240, 112, 16); ctx.fill();
+          U.roundRect(ctx, cx - 110, cy, 220, 112, 16); ctx.fill();
           ctx.strokeStyle = w === sd.world ? '#ffd700' : 'rgba(255,255,255,0.3)';
           ctx.lineWidth = w === sd.world ? 3 : 2;
-          U.roundRect(ctx, cx - 120, cy, 240, 112, 16); ctx.stroke();
+          U.roundRect(ctx, cx - 110, cy, 220, 112, 16); ctx.stroke();
           // معاينة سماء العالم
           const g = ctx.createLinearGradient(0, cy + 8, 0, cy + 50);
           g.addColorStop(0, wc.sky[0]); g.addColorStop(1, wc.sky[1]);
           ctx.fillStyle = unlocked ? g : 'rgba(20,22,34,0.8)';
-          U.roundRect(ctx, cx - 110, cy + 8, 220, 44, 10); ctx.fill();
+          U.roundRect(ctx, cx - 100, cy + 8, 200, 44, 10); ctx.fill();
           ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           if (unlocked) {
             ctx.fillStyle = '#ffffff';
-            ctx.font = `bold ${RN.UI.fontPx(16)}px sans-serif`;
+            ctx.font = `bold ${RN.UI.fontPx(15)}px sans-serif`;
             ctx.fillText(RN.t('worlds')[w], cx, cy + 68);
             // رقم العالم في شارة زاوية مستقلة (تجنب مشاكل bidi)
             ctx.fillStyle = '#ffd700';
-            ctx.beginPath(); ctx.arc(cx - 100, cy + 20, 13, 0, 7); ctx.fill();
+            ctx.beginPath(); ctx.arc(cx - 90, cy + 20, 13, 0, 7); ctx.fill();
             ctx.fillStyle = '#1e3a5c';
             ctx.font = `bold ${RN.UI.fontPx(14)}px sans-serif`;
-            ctx.fillText(String(w + 1), cx - 100, cy + 21);
+            ctx.fillText(String(w + 1), cx - 90, cy + 21);
             // نجوم العالم
             let ws = 0;
             for (let l = 0; l < 8; l++) ws += sd.stars[`${w}-${l}`] || 0;
             ctx.font = `${RN.UI.fontPx(13)}px sans-serif`;
             ctx.fillStyle = '#ffd700';
             ctx.fillText(U.ltr(`⭐ ${ws} / 24`), cx, cy + 92);
-            this.buttons.push({ x: cx - 120, y: cy, w: 240, h: 112, label: '', act: 'world', idx: w, invisible: true });
+            this.buttons.push({ x: cx - 110, y: cy, w: 220, h: 112, label: '', act: 'world', idx: w, invisible: true });
           } else {
             ctx.fillStyle = 'rgba(255,255,255,0.5)';
             ctx.font = `${RN.UI.fontPx(22)}px sans-serif`;
