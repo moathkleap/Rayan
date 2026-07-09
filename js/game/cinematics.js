@@ -54,6 +54,8 @@ window.RN = window.RN || {};
     { ar: 'نجم المسرح: شجعها ريان من الصف الأول حين نسيت كلماتها.', en: 'Stage star: Rayan cheering when she forgot her lines.' },
     { ar: 'سباق الأطلال: أول مرة رأيا فيها البوابة القديمة من بعيد.', en: 'Ruins race: the first far glimpse of the ancient gate.' },
     { ar: 'الوعد: "مهما حدث، سنحمي بعضنا دائمًا." — قالاها معًا.', en: 'The promise: "No matter what, we protect each other."' },
+    { ar: 'مصباح الحكايات: قرأ ريان لنايا حكاية النجم الشجاع حتى غفت.', en: 'Story lamp: Rayan read the brave-star tale till Naya slept.' },
+    { ar: 'مصابيح الظلام: صنعا فوانيس ورقية فأضاءا أحلك ليلة في القرية.', en: 'Lanterns in the dark: paper lights on the village\'s darkest night.' },
   ];
 
   /* ---------- مشهد أساس ---------- */
@@ -477,7 +479,9 @@ window.RN = window.RN || {};
     _prison(ctx, cx, cy, wi) {
       ctx.save();
       ctx.translate(cx, cy);
-      if (wi === 0) { // قفص خشبي
+      // فن السجن بمعرف العالم لا بفهرسه كي لا ينكسر عند إدراج عالم جديد
+      const wid = RN.C.WORLDS[wi].id;
+      if (wid === 'forest') { // قفص خشبي
         ctx.strokeStyle = '#6a4a2a'; ctx.lineWidth = 8; ctx.lineCap = 'round';
         for (let i = -3; i <= 3; i++) {
           ctx.beginPath(); ctx.moveTo(i * 24, -4); ctx.lineTo(i * 24 + 4, -150); ctx.stroke();
@@ -485,7 +489,7 @@ window.RN = window.RN || {};
         ctx.beginPath(); ctx.moveTo(-80, -150); ctx.quadraticCurveTo(0, -185, 84, -150); ctx.stroke();
         ctx.strokeStyle = '#4a8a3a'; ctx.lineWidth = 4;
         ctx.beginPath(); ctx.moveTo(-76, -140); ctx.quadraticCurveTo(-40, -160, -20, -145); ctx.stroke();
-      } else if (wi === 1) { // سجن كريستالي
+      } else if (wid === 'desert') { // سجن كريستالي
         ctx.globalAlpha = 0.4;
         ctx.fillStyle = '#e8d8ff';
         ctx.beginPath(); ctx.moveTo(-90, 0); ctx.lineTo(-60, -160); ctx.lineTo(0, -190); ctx.lineTo(60, -160); ctx.lineTo(90, 0); ctx.closePath(); ctx.fill();
@@ -493,7 +497,7 @@ window.RN = window.RN || {};
         ctx.strokeStyle = '#c8a8ff'; ctx.lineWidth = 4;
         ctx.beginPath(); ctx.moveTo(-90, 0); ctx.lineTo(-60, -160); ctx.lineTo(0, -190); ctx.lineTo(60, -160); ctx.lineTo(90, 0); ctx.closePath(); ctx.stroke();
         ctx.beginPath(); ctx.moveTo(-60, -160); ctx.lineTo(0, 0); ctx.moveTo(60, -160); ctx.lineTo(0, 0); ctx.stroke();
-      } else if (wi === 2) { // سجن جليدي
+      } else if (wid === 'ice') { // سجن جليدي
         ctx.globalAlpha = 0.5;
         ctx.fillStyle = '#bfe4ff';
         RN.U.roundRect(ctx, -85, -170, 170, 170, 20); ctx.fill();
@@ -504,7 +508,7 @@ window.RN = window.RN || {};
           ctx.fillStyle = '#ffffff';
           ctx.beginPath(); ctx.arc(-60 + i * 40, -160 + (i % 2) * 8, 4, 0, 7); ctx.fill();
         }
-      } else if (wi === 3) { // زنزانة بركانية
+      } else if (wid === 'volcano') { // زنزانة بركانية
         ctx.strokeStyle = '#3a3040'; ctx.lineWidth = 9;
         for (let i = -3; i <= 3; i++) {
           ctx.beginPath(); ctx.moveTo(i * 25, 0); ctx.lineTo(i * 25, -160); ctx.stroke();
@@ -517,7 +521,7 @@ window.RN = window.RN || {};
         ctx.globalAlpha = 1;
         ctx.fillStyle = '#3a3040';
         ctx.fillRect(-90, -172, 180, 14);
-      } else if (wi === 4) { // قفص طائر معلق
+      } else if (wid === 'sky') { // قفص طائر معلق
         const sway = Math.sin(this.t * 1.2) * 8;
         ctx.translate(sway, -30);
         ctx.strokeStyle = '#c8a83a'; ctx.lineWidth = 5;
@@ -526,7 +530,7 @@ window.RN = window.RN || {};
           ctx.beginPath(); ctx.moveTo(i * 24, 20); ctx.quadraticCurveTo(i * 26, -100, 0, -200); ctx.stroke();
         }
         ctx.beginPath(); ctx.ellipse(0, 20, 78, 14, 0, 0, 7); ctx.stroke();
-      } else if (wi === 5) { // قفص من ضوء النجوم
+      } else if (wid === 'stars') { // قفص من ضوء النجوم
         ctx.strokeStyle = 'rgba(255,222,120,0.85)';
         ctx.lineWidth = 4; ctx.lineCap = 'round';
         ctx.shadowColor = '#ffd76a'; ctx.shadowBlur = 10;
@@ -540,7 +544,7 @@ window.RN = window.RN || {};
         for (let i = -3; i <= 3; i++) {
           const tw = 2.5 + Math.sin(this.t * 4 + i * 1.7) * 1.2;
           ctx.save(); ctx.translate(i * 24, -172); ctx.rotate(this.t * 0.8 + i);
-          for (let k = 0; k < 4; k++) { ctx.rotate(Math.PI / 2); ctx.fillRect(-1, -tw - 2, 2, tw + 2); }
+          U.sparkle(ctx, tw + 2, 0, 2);
           ctx.restore();
         }
       } else { // قاعة مظلمة

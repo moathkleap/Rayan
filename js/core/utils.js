@@ -66,6 +66,15 @@ window.RN = window.RN || {};
     ctx.closePath();
   };
 
+  // بريق نجمي رباعي الأذرع حول نقطة الأصل الحالية (يفترض ctx مُترجَمًا/مُدارًا مسبقًا)
+  // outer: طول الذراع من المركز، inner: بداية الذراع (0 = من المركز)، aw: عرض الذراع
+  U.sparkle = function (ctx, outer, inner, aw) {
+    for (let k = 0; k < 4; k++) {
+      ctx.rotate(Math.PI / 2);
+      ctx.fillRect(-aw / 2, -outer, aw, outer - inner);
+    }
+  };
+
   // عزل نص بأرقام داخل اتجاه LTR (لمنع قلب "0 / 19" في واجهة عربية)
   U.ltr = (s) => '\u2066' + s + '\u2069';
 

@@ -21,6 +21,7 @@ window.RN = window.RN || {};
   C.WORLDS = [
     {
       id: 'forest',
+      bgSky: ['#5fb0dd', '#8fd0e8', '#eaf7e8'], // تدرج سماء الخلفية (3 توقفات)
       sky: ['#7ec8e3', '#cfeef7'], far: '#5da177', mid: '#3f8a5e', ground: '#7a5230',
       groundTop: '#58b24d', accent: '#2f6e46', weather: 'leaves', fog: 'rgba(210,240,220,0.25)',
       hazard: 'water', liquid: '#2e7fb8',
@@ -29,6 +30,7 @@ window.RN = window.RN || {};
     },
     {
       id: 'desert',
+      bgSky: ['#e8a84a', '#f5c76b', '#fdeec6'], // تدرج سماء الخلفية (3 توقفات)
       sky: ['#f5c76b', '#fdeec6'], far: '#d9a04e', mid: '#c08637', ground: '#b98a4a',
       groundTop: '#e0b263', accent: '#8a5f2a', weather: 'sandstorm', fog: 'rgba(240,210,150,0.22)',
       hazard: 'quicksand', liquid: '#d8b264',
@@ -37,6 +39,7 @@ window.RN = window.RN || {};
     },
     {
       id: 'ice',
+      bgSky: ['#6f9cc8', '#a8c8e8', '#eef6ff'], // تدرج سماء الخلفية (3 توقفات)
       sky: ['#8fb8de', '#e8f4ff'], far: '#a9c8e8', mid: '#7ea6cf', ground: '#9db9d6',
       groundTop: '#e9f6ff', accent: '#5b7ea6', weather: 'snow', fog: 'rgba(230,245,255,0.3)',
       hazard: 'freeze', liquid: '#7db8e8',
@@ -45,6 +48,7 @@ window.RN = window.RN || {};
     },
     {
       id: 'volcano',
+      bgSky: ['#2a1418', '#6e2a1e', '#c8552a'], // تدرج سماء الخلفية (3 توقفات)
       sky: ['#3b1f24', '#8a3324'], far: '#5c2a24', mid: '#7c3526', ground: '#4a3038',
       groundTop: '#6e4a50', accent: '#e0562a', weather: 'embers', fog: 'rgba(120,40,20,0.28)',
       hazard: 'lava', liquid: '#ff6a1e',
@@ -53,6 +57,7 @@ window.RN = window.RN || {};
     },
     {
       id: 'sky',
+      bgSky: ['#3a6cc8', '#6f9fe0', '#cfe8ff'], // تدرج سماء الخلفية (3 توقفات)
       sky: ['#4a7fd4', '#bfe3ff'], far: '#7fa8e8', mid: '#5f8ed8', ground: '#d8e6f4',
       groundTop: '#f4fbff', accent: '#3a67b0', weather: 'wind', fog: 'rgba(255,255,255,0.3)',
       hazard: 'fall', liquid: '#6fa8e8',
@@ -61,6 +66,7 @@ window.RN = window.RN || {};
     },
     {
       id: 'stars',
+      bgSky: ['#0b1030', '#20306e', '#3a4a8e'], // تدرج سماء الخلفية (3 توقفات)
       sky: ['#0f1440', '#3a4a8e'], far: '#2a3470', mid: '#3c4a90', ground: '#2e2c58',
       groundTop: '#7a74d8', accent: '#ffd76a', weather: 'stardust', fog: 'rgba(120,130,230,0.18)',
       hazard: 'void', liquid: '#4a3aa8',
@@ -69,6 +75,7 @@ window.RN = window.RN || {};
     },
     {
       id: 'dark',
+      bgSky: ['#0a0718', '#231640', '#3a2560'], // تدرج سماء الخلفية (3 توقفات)
       sky: ['#0d0a1e', '#2a1a4a'], far: '#241a45', mid: '#352a5c', ground: '#2c2440',
       groundTop: '#4a3d6e', accent: '#8a5cff', weather: 'shadowMist', fog: 'rgba(40,20,80,0.4)',
       hazard: 'void', liquid: '#3a1a6a',

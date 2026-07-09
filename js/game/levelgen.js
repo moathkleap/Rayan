@@ -228,8 +228,9 @@ window.RN = window.RN || {};
         }
         this.crystal(g.x + Math.floor(pw / 2), py - 2);
         if (g.rng() < 0.25 && g.diffT > 0.3) {
-          const flyers = { 0: 'wasp', 1: 'vulture', 2: 'frostBat', 3: 'fireImp', 4: 'stormBird', 5: 'shadowGhost' };
-          this.enemies.push({ type: flyers[this.wi], x: (g.x + 1) * 32, y: (py - 3) * 32 });
+          // مفهرسة بمعرف العالم لا بموقعه كي لا تنكسر عند إدراج عالم جديد
+          const flyers = { forest: 'wasp', desert: 'vulture', ice: 'frostBat', volcano: 'fireImp', sky: 'stormBird', stars: 'cometHawk', dark: 'shadowGhost' };
+          this.enemies.push({ type: flyers[this.world.id] || this.world.enemies[1], x: (g.x + 1) * 32, y: (py - 3) * 32 });
         }
         for (let k = 0; k < gapw; k++) {
           if (liquid) this.fillCol(g.x + pw + k, this.h, T().EMPTY, this.h - 3);

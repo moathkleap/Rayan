@@ -10,17 +10,6 @@ window.RN = window.RN || {};
 (function () {
   const U = RN.U;
 
-  // لوحات سماء سينمائية (3 توقفات) لكل عالم
-  const SKIES = [
-    ['#5fb0dd', '#8fd0e8', '#eaf7e8'],
-    ['#e8a84a', '#f5c76b', '#fdeec6'],
-    ['#6f9cc8', '#a8c8e8', '#eef6ff'],
-    ['#2a1418', '#6e2a1e', '#c8552a'],
-    ['#3a6cc8', '#6f9fe0', '#cfe8ff'],
-    ['#0b1030', '#20306e', '#3a4a8e'],
-    ['#0a0718', '#231640', '#3a2560'],
-  ];
-
   class Background {
     constructor(worldIndex, seed) {
       this.wi = worldIndex;
@@ -54,14 +43,14 @@ window.RN = window.RN || {};
       this.motes = [];
       for (let i = 0; i < 26; i++) this.motes.push({ x: rng() * RN.VW, y: rng() * RN.VH, s: 0.8 + rng() * 2, sp: 4 + rng() * 10, ph: rng() * 7 });
       this.birds = [];
-      if (worldIndex === 0 || worldIndex === 4) {
+      if (this.w.id === 'forest' || this.w.id === 'sky') {
         for (let i = 0; i < 3; i++) this.birds.push({ x: rng() * RN.VW, y: 50 + rng() * 130, sp: 22 + rng() * 18, ph: rng() * 7, dir: rng() < 0.5 ? 1 : -1 });
       }
     }
 
     /* ---------- الطبقة 1: السماء ---------- */
     _sky(ctx) {
-      const s = SKIES[this.wi];
+      const s = this.w.bgSky;
       const g = ctx.createLinearGradient(0, 0, 0, RN.VH);
       g.addColorStop(0, s[0]); g.addColorStop(0.55, s[1]); g.addColorStop(1, s[2]);
       ctx.fillStyle = g;
@@ -120,7 +109,7 @@ window.RN = window.RN || {};
         ctx.beginPath(); ctx.arc(mx - 11, my - 7, 7, 0, 7); ctx.arc(mx + 9, my + 11, 5, 0, 7); ctx.arc(mx + 2, my - 15, 3.5, 0, 7); ctx.fill();
         return;
       }
-      if (this.wi === 3) {
+      if (this.w.id === 'volcano') {
         // وهج بركاني نابض من الأسفل
         const rg = ctx.createRadialGradient(RN.VW / 2, RN.VH + 60, 60, RN.VW / 2, RN.VH + 60, 560);
         const pulse = 0.3 + Math.sin(time * 1.4) * 0.06;
@@ -180,7 +169,7 @@ window.RN = window.RN || {};
       for (const [px, py, pw, ph] of puffs) ctx.ellipse(x + px * w, y + py * w + 4, pw * w, ph * w, 0, 0, 7);
       ctx.fill();
       // جسم مضيء
-      ctx.fillStyle = this.isDark ? '#4a3a70' : this.isStars ? '#46549e' : this.wi === 3 ? '#6e4048' : '#ffffff';
+      ctx.fillStyle = this.isDark ? '#4a3a70' : this.isStars ? '#46549e' : this.w.id === 'volcano' ? '#6e4048' : '#ffffff';
       ctx.beginPath();
       for (const [px, py, pw, ph] of puffs) ctx.ellipse(x + px * w, y + py * w, pw * w, ph * w, 0, 0, 7);
       ctx.fill();
@@ -188,10 +177,10 @@ window.RN = window.RN || {};
 
     /* ---------- عنصر طبيعي بريشة غنية حسب العالم والطبقة ---------- */
     _feature(ctx, it, baseY, tone, layer, time) {
-      const wi = this.wi;
       const x = it.x, h = it.h, w2 = it.w2;
-      switch (wi) {
-        case 0: { // أشجار غابة بثلاث درجات لونية
+      // التوزيع بمعرف العالم لا بفهرسه كي لا تنكسر التضاريس عند إدراج عالم
+      switch (this.w.id) {
+        case 'forest': { // أشجار غابة بثلاث درجات لونية
           if (layer <= 1) { // تلال بعيدة
             ctx.fillStyle = tone;
             ctx.beginPath();
@@ -230,7 +219,7 @@ window.RN = window.RN || {};
           }
           break;
         }
-        case 1: { // معابد وأهرام بظلال جانبية
+        case 'desert': { // معابد وأهرام بظلال جانبية
           const g = ctx.createLinearGradient(x - w2 * 0.7, 0, x + w2 * 0.7, 0);
           g.addColorStop(0, U.shade(tone, 0.12));
           g.addColorStop(0.55, tone);
@@ -273,7 +262,7 @@ window.RN = window.RN || {};
           }
           break;
         }
-        case 2: { // قمم جليدية + صنوبر مثلج
+        case 'ice': { // قمم جليدية + صنوبر مثلج
           const g = ctx.createLinearGradient(x - w2 * 0.8, 0, x + w2 * 0.8, 0);
           g.addColorStop(0, U.shade(tone, 0.15));
           g.addColorStop(0.6, tone);
@@ -318,7 +307,7 @@ window.RN = window.RN || {};
           }
           break;
         }
-        case 3: { // مخاريط بركانية بشقوق متوهجة ودخان
+        case 'volcano': { // مخاريط بركانية بشقوق متوهجة ودخان
           const g = ctx.createLinearGradient(x - w2, 0, x + w2, 0);
           g.addColorStop(0, U.shade(tone, 0.1));
           g.addColorStop(0.5, tone);
@@ -357,7 +346,7 @@ window.RN = window.RN || {};
           }
           break;
         }
-        case 4: { // جزر طائرة بعشب وشلالات
+        case 'sky': { // جزر طائرة بعشب وشلالات
           const fy = baseY - h - Math.sin(time * 0.7 + x * 0.02) * 9;
           // صخر الجزيرة
           const g = ctx.createLinearGradient(0, fy, 0, fy + w2 * 0.5);
@@ -390,7 +379,52 @@ window.RN = window.RN || {};
           }
           break;
         }
-        case 5: { // قلاع مظلمة وأشجار ملتوية
+        case 'stars': { // أبراج بلورية مضيئة ونجوم عائمة
+          if (layer <= 1) { // تلال بعيدة ناعمة
+            ctx.fillStyle = tone;
+            ctx.beginPath();
+            ctx.moveTo(x - w2, baseY);
+            ctx.quadraticCurveTo(x, baseY - h, x + w2, baseY);
+            ctx.closePath(); ctx.fill();
+            break;
+          }
+          // برج بلوري مدبب بتدرج
+          const g = ctx.createLinearGradient(x - w2 * 0.4, 0, x + w2 * 0.4, 0);
+          g.addColorStop(0, U.shade(tone, 0.18));
+          g.addColorStop(0.55, tone);
+          g.addColorStop(1, U.shade(tone, -0.22));
+          ctx.fillStyle = g;
+          ctx.beginPath();
+          ctx.moveTo(x - w2 * 0.4, baseY);
+          ctx.lineTo(x - w2 * 0.1, baseY - h * 0.9);
+          ctx.lineTo(x, baseY - h);
+          ctx.lineTo(x + w2 * 0.12, baseY - h * 0.85);
+          ctx.lineTo(x + w2 * 0.4, baseY);
+          ctx.closePath(); ctx.fill();
+          // قمة متوهجة نابضة + عرق ضوئي
+          ctx.globalCompositeOperation = 'screen';
+          const tw = 0.5 + Math.sin(time * 1.8 + x * 0.7) * 0.3;
+          ctx.fillStyle = `rgba(255,225,150,${tw})`;
+          ctx.beginPath(); ctx.arc(x, baseY - h, 4 + tw * 3, 0, 7); ctx.fill();
+          ctx.strokeStyle = `rgba(200,220,255,${tw * 0.6})`;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.moveTo(x - w2 * 0.06, baseY - h * 0.9);
+          ctx.lineTo(x + w2 * 0.02, baseY - h * 0.55);
+          ctx.lineTo(x - w2 * 0.05, baseY - h * 0.25);
+          ctx.stroke();
+          ctx.globalCompositeOperation = 'source-over';
+          // نجيمة عائمة مجاورة
+          if (it.v > 0.55) {
+            const sx = x + w2 * 0.7, sy = baseY - h * 0.6 - Math.sin(time * 0.9 + x) * 8;
+            ctx.fillStyle = '#fff2c0';
+            ctx.save(); ctx.translate(sx, sy); ctx.rotate(time * 0.6 + it.v * 6);
+            U.sparkle(ctx, 7, 0, 2.4);
+            ctx.restore();
+          }
+          break;
+        }
+        case 'dark': { // قلاع مظلمة وأشجار ملتوية
           if (it.v > 0.45 || layer < 2) {
             const g = ctx.createLinearGradient(x - w2 * 0.55, 0, x + w2 * 0.55, 0);
             g.addColorStop(0, U.shade(tone, 0.12));
@@ -463,13 +497,13 @@ window.RN = window.RN || {};
       ctx.globalAlpha = 1;
 
       // 4) جبال بعيدة (ضبابية — تُمزج مع لون السماء)
-      const farTone = U.mix(w.far, SKIES[this.wi][1], 0.45);
+      const farTone = U.mix(w.far, this.w.bgSky[1], 0.45);
       this._layerLoop(ctx, this.mountains, camX * 0.08, 260, (it) => {
         this._feature(ctx, it, RN.VH - 46, farTone, 0, time);
       });
 
       // 5) تلال/غابة بعيدة
-      const hillTone = U.mix(w.far, SKIES[this.wi][1], 0.18);
+      const hillTone = U.mix(w.far, this.w.bgSky[1], 0.18);
       this._layerLoop(ctx, this.farHills, camX * 0.18, 210, (it) => {
         this._feature(ctx, it, RN.VH - 40, hillTone, 1, time);
       });
@@ -523,7 +557,7 @@ window.RN = window.RN || {};
         const mx = ((m.x + time * m.sp - camX * 0.3) % (RN.VW + 40) + RN.VW + 40) % (RN.VW + 40) - 20;
         const my = m.y + Math.sin(time * 0.8 + m.ph) * 22;
         const a = 0.12 + Math.sin(time * 1.5 + m.ph * 2) * 0.1;
-        ctx.fillStyle = this.isDark ? `rgba(190,150,255,${a})` : this.isStars ? `rgba(255,222,140,${a + 0.05})` : this.wi === 3 ? `rgba(255,170,90,${a})` : `rgba(255,250,210,${a + 0.05})`;
+        ctx.fillStyle = this.isDark ? `rgba(190,150,255,${a})` : this.isStars ? `rgba(255,222,140,${a + 0.05})` : this.w.id === 'volcano' ? `rgba(255,170,90,${a})` : `rgba(255,250,210,${a + 0.05})`;
         ctx.beginPath(); ctx.arc(mx, my, m.s, 0, 7); ctx.fill();
       }
       ctx.globalCompositeOperation = 'source-over';

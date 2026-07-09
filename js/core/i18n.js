@@ -232,6 +232,8 @@ window.RN = window.RN || {};
       return v;
     },
     isRTL() { return this.lang === 'ar'; },
+    // وصول لكلا اللغتين معًا (تحتاجه الإنجازات التي تُعرَّف مرة بالعربية والإنجليزية)
+    both(key) { return { ar: STRINGS.ar[key], en: STRINGS.en[key] }; },
   };
 
   RN.I18N = I18N;
