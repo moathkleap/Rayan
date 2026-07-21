@@ -116,6 +116,10 @@ window.RN = window.RN || {};
         return;
       }
 
+      // شبكة أمان: إن انحشر اللاعب داخل بلاطة صلبة (سقوط/تليبورت/بوابة تُغلق فوقه)
+      // فسيتعذّر عليه التحرك في أي اتجاه — حرّره قبل معالجة الإدخال.
+      this._unstick(scene);
+
       // مؤقتات
       if (this.invuln > 0) this.invuln -= dt;
       if (this.hurtT > 0) this.hurtT -= dt;
@@ -355,6 +359,32 @@ window.RN = window.RN || {};
           }
         }
       }
+    }
+
+    // تحرير اللاعب إن كان جسده مدفونًا داخل بلاطة صلبة (حالة "لا أستطيع التحرك").
+    // الفحص يستعمل نقطتي مركز الجسم فقط، فلا يُطلَق أثناء اللعب الطبيعي
+    // (الوقوف على الأرض/داخل شقّ ضيّق) بل فقط عند الانحشار الحقيقي.
+    _unstick(scene) {
+      const level = scene.level;
+      const tile = 32;
+      const embedded = () => {
+        const cx = Math.floor((this.x + this.w / 2) / tile);
+        const cyMid = Math.floor((this.y + this.h * 0.5) / tile);
+        const cyLow = Math.floor((this.y + this.h * 0.8) / tile);
+        return RN.Physics.isSolid(level.tileAt(cx, cyMid)) || RN.Physics.isSolid(level.tileAt(cx, cyLow));
+      };
+      if (!embedded()) return;
+      // حاول رفعه للأعلى حتى يتحرر (حتى ~5 بلاطات) — يغطّي انغلاق بوابة فوقه
+      const startY = this.y;
+      for (let s = 0; s < 40; s++) {
+        this.y -= 4;
+        if (!embedded()) { this.vy = 0; return; }
+      }
+      // تعذّر التحرير بالرفع: أعده لآخر موضع آمن معروف
+      this.y = startY;
+      this.x = scene.safeX; this.y = scene.safeY;
+      this.vx = 0; this.vy = 0;
+      this.invuln = Math.max(this.invuln, 1);
     }
 
     _physics(scene, dt, noGravReset) {
