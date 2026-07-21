@@ -18,12 +18,15 @@ window.RN = window.RN || {};
       this.isBoss = li === C().LEVELS_PER_WORLD - 1;
       this.world = C().WORLDS[wi];
       this.h = 30;
+      // العرض المخطط: تستعمله حلقة التوليد وحساب التقدّم prog.
       this.w = this.isBoss ? 64 : 120 + li * 12 + wi * 8;
-      this.tiles = new Uint8Array(this.w * this.h);
-      // خطوة الصف الثابتة للتخزين: تُحسب مرة عند التخصيص ولا تتغير.
-      // العرض this.w قد يُقلَّم لاحقًا (للكاميرا/الخريطة) لكن idx يجب أن
-      // يبقى على نفس الخطوة وإلا انزاحت كل قراءات البلاطات وفسدت الأرضية.
-      this.stride = this.w;
+      // خطوة/سعة التخزين: أوسع من العرض المخطط بهامش كافٍ، لأن آخر مقطع
+      // مولّد قد يتجاوز العرض المخطط ثم تُضاف أرضية النهاية + بوابة الهدف.
+      // بدون الهامش كانت setTile تُسقِط ما يتجاوز الحد، فيُحاط الهدف بجدار
+      // جانبي ويصير المستوى غير قابل للإكمال. الخطوة ثابتة لا تتغير كي لا
+      // تنزاح قراءات البلاطات (idx).
+      this.stride = this.isBoss ? this.w : this.w + 96;
+      this.tiles = new Uint8Array(this.stride * this.h);
       this.entities = [];
       this.enemies = [];
       this.gates = {};       // gateId -> [[tx,ty],...]
@@ -44,7 +47,9 @@ window.RN = window.RN || {};
       return this.tiles[this.idx(tx, ty)];
     }
     setTile(tx, ty, id) {
-      if (tx < 0 || tx >= this.w || ty < 0 || ty >= this.h) return;
+      // الحدّ على السعة (stride) لا على العرض المخطط، كي لا تُقتطع المقاطع
+      // الأخيرة والهدف عند تجاوز العرض المخطط أثناء التوليد.
+      if (tx < 0 || tx >= this.stride || ty < 0 || ty >= this.h) return;
       this.tiles[this.idx(tx, ty)] = id;
     }
     fillCol(tx, top, id, liquidTop) {
@@ -134,7 +139,9 @@ window.RN = window.RN || {};
       this._flat(g, 10, { safe: true });
       this.goal = { x: (g.x - 4) * 32, y: (g.groundY - 4) * 32 };
       this.ent('goalGate', { x: this.goal.x, y: (g.groundY) * 32 });
-      this.w = Math.min(this.w, g.x + 2);
+      // ضبط العرض الفعلي ليشمل كل ما وُلِّد (قد يكون أوسع من العرض المخطط)
+      // مع البقاء ضمن السعة المخصّصة، فلا يُحاط الهدف بجدار ويبقى المستوى مكتملًا.
+      this.w = Math.min(this.stride - 1, g.x + 2);
     }
 
     _groundTile() {
