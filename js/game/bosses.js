@@ -457,7 +457,12 @@ window.RN = window.RN || {};
             this.x = U.clamp(px + U.rand(-300, 300), 90, scene.level.w * 32 - 90 - this.w);
             this.y = this.groundY - this.h - U.rand(0, 120);
             scene.particles.burst(this.x + this.w / 2, this.y + this.h / 2, 20, { color: '#8a5cff', speed: 180, size: 4, life: 0.6, glow: true });
-            const opts = ph >= 3 ? ['orbs', 'clones', 'barrage'] : ph === 2 ? ['orbs', 'clones'] : ['orbs'];
+            // نافذة الضعف (barrage → إنهاك) في كل الأطوار، أسوةً ببقية الزعماء
+            // السبعة. بدونها كان الطوران 1 و2 بلا أي نافذة ضعف إطلاقًا، فلا
+            // يُصاب الزعيم إلا بالضرر المخفّف العشوائي — قتال طويل غير متوازن.
+            const opts = ph >= 3 ? ['orbs', 'clones', 'barrage']
+              : ph === 2 ? ['orbs', 'clones', 'barrage']
+                : ['orbs', 'barrage'];
             this.state = U.pick(opts);
             this.timer = this.state === 'orbs' ? 0.9 : this.state === 'clones' ? 1.0 : 1.4;
           }

@@ -84,6 +84,16 @@ window.RN = window.RN || {};
 
     toast(text) { this.toasts.push({ text, t: 2.5 }); }
 
+    // هل خلية البلاطة يشغلها اللاعب أو صندوق؟ (لتفادي إعادة بناء بلاطة فوقهم)
+    _cellBlockedByActor(tx, ty) {
+      const cell = { x: tx * 32, y: ty * 32, w: 32, h: 32 };
+      if (U.aabb(cell, this.player.box())) return true;
+      for (const e of this.level.entities) {
+        if (e.type === 'box' && U.aabb(cell, { x: e.x, y: e.y, w: 30, h: 30 })) return true;
+      }
+      return false;
+    }
+
     setCheckpoint(x, y) {
       this.checkpointX = x;
       this.checkpointY = y;
@@ -185,8 +195,25 @@ window.RN = window.RN || {};
             this.level.setTile(c[0], c[1], RN.C.T.EMPTY);
             RN.Audio.sfx('rockfall');
             this.particles.burst(c[0] * 32 + 16, c[1] * 32 + 8, 8, { color: RN.C.WORLDS[this.wi].ground, speed: 90, size: 3.5, life: 0.5, grav: 500 });
+            // جدولة إعادة البناء كي لا ينقطع الطريق نهائيًا بعد السقوط
+            if (!this.level._regen) this.level._regen = [];
+            this.level._regen.push([c[0], c[1], 3.0]);
             this.level._crumbling.splice(i, 1);
           }
+        }
+      }
+
+      // إعادة بناء البلاطات الهشة المتفتتة بعد فترة (تفادي علوق اللاعب/انقطاع الطريق)
+      if (this.level._regen) {
+        for (let i = this.level._regen.length - 1; i >= 0; i--) {
+          const r = this.level._regen[i];
+          r[2] -= dt;
+          if (r[2] > 0) continue;
+          // لا تُعِد البناء داخل اللاعب أو صندوق (كي لا يُحشر داخل البلاطة)
+          if (this._cellBlockedByActor(r[0], r[1])) { r[2] = 0.3; continue; }
+          this.level.setTile(r[0], r[1], RN.C.T.CRUMBLE);
+          this.particles.burst(r[0] * 32 + 16, r[1] * 32 + 16, 6, { color: RN.C.WORLDS[this.wi].ground, speed: 55, size: 3, life: 0.4 });
+          this.level._regen.splice(i, 1);
         }
       }
 
