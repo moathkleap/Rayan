@@ -393,29 +393,32 @@ window.RN = window.RN || {};
 
     /* ------------- الأسرار ------------- */
     _secret(g, n) {
-      // كهف مخفي تحت الأرض خلف بلاطات قابلة للكسر
+      // حفرة سرية ضحلة (عمق بلاطتين) خلف بلاطات قابلة للكسر.
+      // كانت الغرفة سابقًا بعمق 5 بلاطات، فتحبس اللاعب في العالم الأول حيث
+      // لا يملك سوى قفزة مفردة (~3.8 بلاطة نظريًا، لكن الخروج الموثوق ≤ بلاطتين).
+      // بعمق بلاطتين يخرج اللاعب بقفزة واحدة في كل العوالم. كرمة تسلّق احتياطية.
       const gt = this._groundTile();
       const len = 7;
       for (let i = 0; i < len; i++) this.fillCol(g.x + i, g.groundY, gt);
       const cx = g.x + 2;
-      // غرفة تحت الأرض
-      const roomY = g.groundY + 2;
-      for (let tx = cx; tx < cx + 4; tx++) {
-        for (let ty = roomY; ty < roomY + 3; ty++) this.setTile(tx, ty, T().EMPTY);
-      }
-      // مدخل قابل للكسر
+      // حفرة بعرض 4 وعمق بلاطتين: صفّ واحد مفرّغ فوق الأرضية (السطح groundY،
+      // الأرضية groundY+2) فيخرج اللاعب بقفزة مفردة موثوقة.
+      const roomY = g.groundY + 1;
+      for (let tx = cx; tx < cx + 4; tx++) this.setTile(tx, roomY, T().EMPTY);
+      // مدخل قابل للكسر بالسطح
       this.setTile(cx + 1, g.groundY, T().BREAK);
       this.setTile(cx + 2, g.groundY, T().BREAK);
-      this.setTile(cx + 1, g.groundY + 1, T().EMPTY);
-      this.setTile(cx + 2, g.groundY + 1, T().EMPTY);
-      // المحتوى: كنز أو قطعة أثرية (ذكرى)
+      // كرمة تسلّق احتياطية للخروج (لا تُشترط بقدرة)
+      this.setTile(cx + 1, roomY, T().CLIMB);
+      // المحتوى: كنز أو قطعة أثرية (ذكرى) — يستقر على أرضية الحفرة
+      const chestY = (roomY + 1) * 32;
       const hasRelic = (this.li === 2 || this.li === 5) && n === 1;
       if (hasRelic) {
-        this.ent('chest', { x: (cx + 2) * 32, y: (roomY + 2) * 32, opened: false, contents: 'relic', relicId: this.wi * 2 + (this.li === 2 ? 0 : 1) });
+        this.ent('chest', { x: (cx + 2) * 32, y: chestY, opened: false, contents: 'relic', relicId: this.wi * 2 + (this.li === 2 ? 0 : 1) });
       } else {
-        this.ent('chest', { x: (cx + 2) * 32, y: (roomY + 2) * 32, opened: false, contents: 'crystals', amount: U.rngi(g.rng, 10, 25) });
+        this.ent('chest', { x: (cx + 2) * 32, y: chestY, opened: false, contents: 'crystals', amount: U.rngi(g.rng, 10, 25) });
       }
-      this.ent('secretZone', { x: cx * 32, y: roomY * 32, w: 4 * 32, h: 3 * 32, found: false });
+      this.ent('secretZone', { x: cx * 32, y: roomY * 32, w: 4 * 32, h: 32, found: false });
       this.secretTotal++;
       g.x += len;
     }
