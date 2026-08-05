@@ -656,7 +656,7 @@ window.RN = window.RN || {};
 
   /* ============ الإعدادات ============ */
   class SettingsScene {
-    constructor(back) { this.back = back; this.remapping = null; }
+    constructor(back) { this.back = back; this.remapping = null; this.confirmReset = false; }
     enter() {
       this.t = 0;
       this.bg = new RN.Background(2, 33);
@@ -673,7 +673,7 @@ window.RN = window.RN || {};
       this.bg.render(ctx, this.t * 12, 0, this.t);
       ctx.fillStyle = 'rgba(6,8,20,0.6)';
       ctx.fillRect(0, 0, RN.VW, RN.VH);
-      RN.UI.panel(ctx, RN.VW / 2 - 350, 24, 700, 490, '⚙ ' + RN.t('settings'));
+      RN.UI.panel(ctx, RN.VW / 2 - 350, 20, 700, 512, '⚙ ' + RN.t('settings'));
       this.buttons = [{ x: 24, y: 16, w: 100, h: 38, label: '‹ ' + RN.t('back'), act: 'back', fs: 14 }];
 
       const rows = [
@@ -686,39 +686,46 @@ window.RN = window.RN || {};
         ['assist', RN.t('assistMode'), RN.t('assistLevels')[s.assist]],
         ['quality', RN.t('quality'), RN.t('qualityLevels')[s.quality]],
       ];
-      let ry = 78;
+      let ry = 60;
       for (const [id, label, val] of rows) {
         ctx.fillStyle = 'rgba(30,38,66,0.75)';
-        U.roundRect(ctx, RN.VW / 2 - 320, ry, 640, 40, 8); ctx.fill();
+        U.roundRect(ctx, RN.VW / 2 - 320, ry, 640, 34, 8); ctx.fill();
         ctx.fillStyle = '#ffffff';
         ctx.font = `bold ${RN.UI.fontPx(15)}px sans-serif`;
         ctx.textAlign = RN.I18N.isRTL() ? 'right' : 'left';
         ctx.textBaseline = 'middle';
-        ctx.fillText(label, RN.I18N.isRTL() ? RN.VW / 2 + 295 : RN.VW / 2 - 295, ry + 20);
+        ctx.fillText(label, RN.I18N.isRTL() ? RN.VW / 2 + 295 : RN.VW / 2 - 295, ry + 17);
         this.buttons.push({
-          x: RN.I18N.isRTL() ? RN.VW / 2 - 300 : RN.VW / 2 + 110, y: ry + 3, w: 190, h: 34,
+          x: RN.I18N.isRTL() ? RN.VW / 2 - 300 : RN.VW / 2 + 110, y: ry + 3, w: 190, h: 28,
           label: val, act: 'cycle', id, fs: 13,
         });
-        ry += 46;
+        ry += 40;
       }
       // إعادة تخصيص الأزرار
-      const remapY = ry + 4;
+      const remapY = ry;
       ctx.fillStyle = '#ffd700';
-      ctx.font = `bold ${RN.UI.fontPx(15)}px sans-serif`;
+      ctx.font = `bold ${RN.UI.fontPx(14)}px sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText('⌨ ' + RN.t('remap'), RN.VW / 2, remapY + 10);
+      ctx.fillText('⌨ ' + RN.t('remap'), RN.VW / 2, remapY + 6);
       const acts = ['jump', 'attack', 'dash', 'shot', 'timeSlow'];
       acts.forEach((a, i) => {
         const bx = RN.VW / 2 - 330 + i * 134;
         this.buttons.push({
-          x: bx, y: remapY + 26, w: 126, h: 40,
+          x: bx, y: remapY + 18, w: 126, h: 32,
           label: this.remapping === a ? '...' : `${RN.t('abilities')[a] || a}: ${(RN.Input.map[a] || [''])[0].replace('Key', '')}`,
           act: 'remap', id: a, fs: 11,
         });
       });
       // الحفظ السحابي
-      this.buttons.push({ x: RN.VW / 2 - 330, y: remapY + 78, w: 320, h: 40, label: '☁ ' + RN.t('exportSave'), act: 'export', fs: 14 });
-      this.buttons.push({ x: RN.VW / 2 + 10, y: remapY + 78, w: 320, h: 40, label: '☁ ' + RN.t('importSave'), act: 'import', fs: 14 });
+      this.buttons.push({ x: RN.VW / 2 - 330, y: remapY + 60, w: 320, h: 38, label: '☁ ' + RN.t('exportSave'), act: 'export', fs: 14 });
+      this.buttons.push({ x: RN.VW / 2 + 10, y: remapY + 60, w: 320, h: 38, label: '☁ ' + RN.t('importSave'), act: 'import', fs: 14 });
+      // إعادة المقدمة + تصفير التقدّم
+      this.buttons.push({ x: RN.VW / 2 - 330, y: remapY + 104, w: 320, h: 38, label: '🎬 ' + RN.t('replayIntro'), act: 'replayIntro', fs: 14 });
+      this.buttons.push({
+        x: RN.VW / 2 + 10, y: remapY + 104, w: 320, h: 38,
+        label: this.confirmReset ? '⚠ ' + RN.t('confirmReset') : '🗑 ' + RN.t('resetProgress'),
+        act: 'reset', primary: this.confirmReset, fs: 14,
+      });
 
       for (const b of this.buttons) RN.UI.button(ctx, b);
       if (this.remapping) {
@@ -735,6 +742,7 @@ window.RN = window.RN || {};
       for (const b of this.buttons || []) {
         if (RN.UI.hit(b, x, y)) {
           RN.Audio.sfx('ui');
+          if (b.act !== 'reset') this.confirmReset = false;
           if (b.act === 'back') {
             RN.Save.saveSettings();
             RN.Engine.setScene(this.back === 'menu' ? new MenuScene() : new WorldMapScene(this.back));
@@ -770,6 +778,20 @@ window.RN = window.RN || {};
           if (b.act === 'import') {
             const code = window.prompt ? window.prompt(RN.t('importSave'), '') : '';
             if (code) RN.Save.importCode(code);
+          }
+          if (b.act === 'replayIntro') {
+            RN.Save.saveSettings();
+            const back = this.back;
+            RN.Engine.setScene(new RN.Cine.IntroScene(() => RN.Engine.setScene(new SettingsScene(back))));
+          }
+          if (b.act === 'reset') {
+            if (this.confirmReset) {
+              for (let i = 0; i < 3; i++) RN.Save.deleteProfile(i);
+              this.confirmReset = false;
+              RN.Engine.setScene(new MenuScene());
+            } else {
+              this.confirmReset = true;
+            }
           }
           return;
         }
