@@ -73,6 +73,7 @@ window.RN = window.RN || {};
         sd.worldRun = { w: this.wi, deaths: sd.statsCounters.deaths };
       }
       RN.Audio.setMusic(this.wi, this.level.isBoss ? 'boss' : 'explore');
+      if (RN.updateTouchButtons) RN.updateTouchButtons();
     }
 
     /* ---------------- أدوات المشهد ---------------- */
@@ -335,6 +336,7 @@ window.RN = window.RN || {};
         sd.abilities[ab] = true;
         this.abilityBanner = { ab, t: 5 };
         RN.Audio.sfx('ability');
+        if (RN.updateTouchButtons) RN.updateTouchButtons();
       }
       // فتح العالم التالي
       if (this.wi + 1 < RN.C.WORLD_COUNT && sd.world <= this.wi) {

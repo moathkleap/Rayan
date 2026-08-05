@@ -4,6 +4,20 @@
    تهيئة الأنظمة، ربط الإدخال باللمس والنقر، بدء المحرك
    ============================================================ */
 (function () {
+  // أزرار لمس مرتبطة بقدرات: لا تظهر إلا بعد فتح قدرتها
+  const TOUCH_GATED = { dash: 'dash', shot: 'shot', timeSlow: 'timeSlow' };
+
+  // إظهار/إخفاء أزرار اللمس حسب القدرات المفتوحة في الملف الحالي
+  RN.updateTouchButtons = function () {
+    const layer = document.getElementById('touch');
+    if (!layer) return;
+    const ab = (RN.Save && RN.Save.data && RN.Save.data.abilities) || {};
+    for (const btn of layer.querySelectorAll('[data-action]')) {
+      const gate = TOUCH_GATED[btn.getAttribute('data-action')];
+      btn.style.display = gate && !ab[gate] ? 'none' : '';
+    }
+  };
+
   function boot() {
     const canvas = document.getElementById('game');
 
@@ -59,6 +73,7 @@
         btn.addEventListener('pointerleave', up);
       }
     }
+    RN.updateTouchButtons();
 
     // منع تمرير الصفحة أثناء اللعب
     document.body.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });

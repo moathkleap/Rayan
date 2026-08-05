@@ -643,6 +643,7 @@ window.RN = window.RN || {};
               sd.crystals -= b.cost;
               sd.abilities[b.id] = true;
               RN.Audio.sfx('ability');
+              if (RN.updateTouchButtons) RN.updateTouchButtons();
               RN.Achievements.checkCounters();
               RN.Save.commit(false);
             }
