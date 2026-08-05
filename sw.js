@@ -1,5 +1,5 @@
-/* Rayan & Naya — Service Worker: تشغيل دون اتصال */
-const CACHE = 'rayan-naya-v3';
+/* Rayan & Naya — Service Worker: تشغيل دون اتصال مع تحديث تلقائي */
+const CACHE = 'rayan-naya-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -38,15 +38,26 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
-    )
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
+// شبكة أولاً: عند الاتصال يجلب أحدث نسخة دائمًا (فتظهر التحديثات فورًا)،
+// ويحدّث الكاش في الخلفية، وعند انقطاع الشبكة يعود للنسخة المخزّنة.
 self.addEventListener('fetch', (e) => {
+  const req = e.request;
+  if (req.method !== 'GET') return;
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request))
+    fetch(req)
+      .then((res) => {
+        if (res && res.ok && new URL(req.url).origin === self.location.origin) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy));
+        }
+        return res;
+      })
+      .catch(() => caches.match(req).then((hit) => hit || caches.match('./index.html')))
   );
 });
