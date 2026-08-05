@@ -656,7 +656,7 @@ window.RN = window.RN || {};
 
   /* ============ الإعدادات ============ */
   class SettingsScene {
-    constructor(back) { this.back = back; this.remapping = null; }
+    constructor(back) { this.back = back; this.remapping = null; this.confirmReset = false; }
     enter() {
       this.t = 0;
       this.bg = new RN.Background(2, 33);
@@ -673,7 +673,7 @@ window.RN = window.RN || {};
       this.bg.render(ctx, this.t * 12, 0, this.t);
       ctx.fillStyle = 'rgba(6,8,20,0.6)';
       ctx.fillRect(0, 0, RN.VW, RN.VH);
-      RN.UI.panel(ctx, RN.VW / 2 - 350, 24, 700, 490, '⚙ ' + RN.t('settings'));
+      RN.UI.panel(ctx, RN.VW / 2 - 430, 46, 860, 448, '⚙ ' + RN.t('settings'));
       this.buttons = [{ x: 24, y: 16, w: 100, h: 38, label: '‹ ' + RN.t('back'), act: 'back', fs: 14 }];
 
       const rows = [
@@ -686,39 +686,53 @@ window.RN = window.RN || {};
         ['assist', RN.t('assistMode'), RN.t('assistLevels')[s.assist]],
         ['quality', RN.t('quality'), RN.t('qualityLevels')[s.quality]],
       ];
-      let ry = 78;
-      for (const [id, label, val] of rows) {
+      // شبكة الإعدادات: عمودان × أربعة صفوف (تستغل العرض وتُبقي اللوحة متناسقة)
+      const rtl = RN.I18N.isRTL();
+      const colW = 402, colGap = 24;
+      const leftX = RN.VW / 2 - 430 + 16;      // 66
+      const rightX = leftX + colW + colGap;    // 492
+      const gridTop = 96, rowStep = 50, rowH = 42, valW = 168;
+      rows.forEach(([id, label, val], i) => {
+        const cx = i % 2 === 0 ? leftX : rightX;
+        const cy = gridTop + Math.floor(i / 2) * rowStep;
         ctx.fillStyle = 'rgba(30,38,66,0.75)';
-        U.roundRect(ctx, RN.VW / 2 - 320, ry, 640, 40, 8); ctx.fill();
+        U.roundRect(ctx, cx, cy, colW, rowH, 8); ctx.fill();
         ctx.fillStyle = '#ffffff';
         ctx.font = `bold ${RN.UI.fontPx(15)}px sans-serif`;
-        ctx.textAlign = RN.I18N.isRTL() ? 'right' : 'left';
+        ctx.textAlign = rtl ? 'right' : 'left';
         ctx.textBaseline = 'middle';
-        ctx.fillText(label, RN.I18N.isRTL() ? RN.VW / 2 + 295 : RN.VW / 2 - 295, ry + 20);
+        ctx.fillText(label, rtl ? cx + colW - 16 : cx + 16, cy + rowH / 2);
         this.buttons.push({
-          x: RN.I18N.isRTL() ? RN.VW / 2 - 300 : RN.VW / 2 + 110, y: ry + 3, w: 190, h: 34,
+          x: rtl ? cx + 12 : cx + colW - 12 - valW, y: cy + 5, w: valW, h: 32,
           label: val, act: 'cycle', id, fs: 13,
         });
-        ry += 46;
-      }
+      });
       // إعادة تخصيص الأزرار
-      const remapY = ry + 4;
+      const remapY = gridTop + 4 * rowStep + 6;   // 302
       ctx.fillStyle = '#ffd700';
-      ctx.font = `bold ${RN.UI.fontPx(15)}px sans-serif`;
+      ctx.font = `bold ${RN.UI.fontPx(14)}px sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText('⌨ ' + RN.t('remap'), RN.VW / 2, remapY + 10);
+      ctx.fillText('⌨ ' + RN.t('remap'), RN.VW / 2, remapY + 6);
       const acts = ['jump', 'attack', 'dash', 'shot', 'timeSlow'];
+      const remapW = 156, remapStep = 165;
+      const remapStart = RN.VW / 2 - ((acts.length - 1) * remapStep + remapW) / 2;
       acts.forEach((a, i) => {
-        const bx = RN.VW / 2 - 330 + i * 134;
         this.buttons.push({
-          x: bx, y: remapY + 26, w: 126, h: 40,
+          x: remapStart + i * remapStep, y: remapY + 18, w: remapW, h: 32,
           label: this.remapping === a ? '...' : `${RN.t('abilities')[a] || a}: ${(RN.Input.map[a] || [''])[0].replace('Key', '')}`,
           act: 'remap', id: a, fs: 11,
         });
       });
-      // الحفظ السحابي
-      this.buttons.push({ x: RN.VW / 2 - 330, y: remapY + 78, w: 320, h: 40, label: '☁ ' + RN.t('exportSave'), act: 'export', fs: 14 });
-      this.buttons.push({ x: RN.VW / 2 + 10, y: remapY + 78, w: 320, h: 40, label: '☁ ' + RN.t('importSave'), act: 'import', fs: 14 });
+      // صفّان بمحاذاة العمودين: الحفظ السحابي + (إعادة المقدمة / تصفير التقدّم)
+      const botY = remapY + 62;
+      this.buttons.push({ x: leftX, y: botY, w: colW, h: 38, label: '☁ ' + RN.t('exportSave'), act: 'export', fs: 14 });
+      this.buttons.push({ x: rightX, y: botY, w: colW, h: 38, label: '☁ ' + RN.t('importSave'), act: 'import', fs: 14 });
+      this.buttons.push({ x: leftX, y: botY + 46, w: colW, h: 38, label: '🎬 ' + RN.t('replayIntro'), act: 'replayIntro', fs: 14 });
+      this.buttons.push({
+        x: rightX, y: botY + 46, w: colW, h: 38,
+        label: this.confirmReset ? '⚠ ' + RN.t('confirmReset') : '🗑 ' + RN.t('resetProgress'),
+        act: 'reset', primary: this.confirmReset, fs: 14,
+      });
 
       for (const b of this.buttons) RN.UI.button(ctx, b);
       if (this.remapping) {
@@ -735,6 +749,7 @@ window.RN = window.RN || {};
       for (const b of this.buttons || []) {
         if (RN.UI.hit(b, x, y)) {
           RN.Audio.sfx('ui');
+          if (b.act !== 'reset') this.confirmReset = false;
           if (b.act === 'back') {
             RN.Save.saveSettings();
             RN.Engine.setScene(this.back === 'menu' ? new MenuScene() : new WorldMapScene(this.back));
@@ -770,6 +785,20 @@ window.RN = window.RN || {};
           if (b.act === 'import') {
             const code = window.prompt ? window.prompt(RN.t('importSave'), '') : '';
             if (code) RN.Save.importCode(code);
+          }
+          if (b.act === 'replayIntro') {
+            RN.Save.saveSettings();
+            const back = this.back;
+            RN.Engine.setScene(new RN.Cine.IntroScene(() => RN.Engine.setScene(new SettingsScene(back))));
+          }
+          if (b.act === 'reset') {
+            if (this.confirmReset) {
+              for (let i = 0; i < 3; i++) RN.Save.deleteProfile(i);
+              this.confirmReset = false;
+              RN.Engine.setScene(new MenuScene());
+            } else {
+              this.confirmReset = true;
+            }
           }
           return;
         }
