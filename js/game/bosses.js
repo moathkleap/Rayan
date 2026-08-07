@@ -248,6 +248,9 @@ window.RN = window.RN || {};
       const hoverY = this.groundY - 260;
       switch (this.state) {
         case 'intro': if (this.timer <= 0) { this.state = 'fly'; this.timer = 1.6; } break;
+        case 'move': // بعد انتهاء نافذة الضعف (إجهاد الانقضاض) يعود للتحليق.
+        // بدون هذه الحالة كان التنين يعلَق بلا حراك بعد الـ sweep إذ يفرض
+        // المحرّك state='move' عند انتهاء الإجهاد فلا يجد معالِجًا — قتال معطوب.
         case 'fly': // يحلق ذهابًا وإيابًا
           this.y = U.lerp(this.y, hoverY + Math.sin(this.animT * 2) * 30, dt * 3);
           this.x += Math.sin(this.animT * 0.9) * 120 * dt;
