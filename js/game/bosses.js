@@ -169,12 +169,15 @@ window.RN = window.RN || {};
           }
           break;
         }
-        case 'ceiling': { // يقفز ويسقط فوق اللاعب بموجة صدمة
-          if (!this._cState) { this._cState = 'up'; this.vy = -700; }
+        case 'ceiling': { // يقفز عاليًا ثم يسقط فوق اللاعب بموجة صدمة
+          if (!this._cState) { this._cState = 'up'; this.vy = -1000; }
           if (this._cState === 'up') {
             this.y += this.vy * dt; this.vy += 900 * dt;
             this.x = U.lerp(this.x, px - this.w / 2, dt * 2);
-            if (this.y < 60) { this._cState = 'hover'; this.timer = 0.8; }
+            // ينتقل للتحويم عند بلوغ القمة (vy >= 0) — أو الوصول لأعلى الساحة —
+            // أيهما أسبق. بدون فحص القمة كانت القفزة لا تبلغ y<60 أبدًا فيسقط
+            // العنكبوت خلال الأرض ولا يعود، فتتعذّر مواصلة المعركة (طور 3).
+            if (this.vy >= 0 || this.y < 60) { this._cState = 'hover'; this.timer = 0.8; }
           } else if (this._cState === 'hover') {
             this.x = U.lerp(this.x, px - this.w / 2, dt * 4);
             if (this.timer <= 0) { this._cState = 'drop'; this.vy = 100; }
