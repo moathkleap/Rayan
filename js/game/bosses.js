@@ -21,6 +21,20 @@ window.RN = window.RN || {};
     { id: 'shadowKing', hp: 50, w: 90, h: 120, color: '#3a2a6a', touchDmg: 2 },
   ];
 
+  // الهجمات التي تفتح نافذة الضعف لكل زعيم (إجهاد أو انكشاف). تُستخدم لتنعيم
+  // الإيقاع: إن مرّت عدة دورات دون اختيار أحدها عشوائيًا، يُفرَض ظهوره — كي
+  // لا يطول أمد المعركة بلا فرصة لإلحاق ضرر كامل.
+  const VULN_ATTACKS = {
+    spider: ['lunge', 'ceiling'],
+    sandKing: ['whirl'],
+    iceDragon: ['breath', 'sweep'],
+    lavaBeast: ['erupt'],
+    skyWarden: ['dive'],
+    cometTitan: ['crash'],
+    shadowKing: ['barrage'],
+  };
+  const MAX_DRY_PICKS = 3; // بعد 3 اختيارات دون نافذة ضعف، يُفرَض هجوم نافذة الضعف
+
   class Boss {
     constructor(wi, x, y) {
       const def = BOSS_DEFS[wi];
@@ -115,6 +129,22 @@ window.RN = window.RN || {};
       return false;
     }
 
+    // اختيار الهجمة التالية مع ضمان ألا تتأخّر نافذة الضعف كثيرًا: تُحتسب
+    // الاختيارات المتتالية التي لا تفتح نافذة ضعف، فإن بلغت الحدّ يُفرَض
+    // اختيار هجمة نافذة الضعف المتاحة في هذا الطور (إن وُجدت).
+    _pickAttack(opts) {
+      const vuln = VULN_ATTACKS[this.def.id] || [];
+      this._dryPicks = (this._dryPicks || 0) + 1;
+      let pool = opts;
+      if (this._dryPicks >= MAX_DRY_PICKS) {
+        const forced = opts.filter((o) => vuln.includes(o));
+        if (forced.length) pool = forced;
+      }
+      const s = U.pick(pool);
+      if (vuln.includes(s)) this._dryPicks = 0;
+      return s;
+    }
+
     // انقضاض نحو اللاعب حتى ملامسة الأرض ثم إجهاد (نافذة ضعف). يعيد true عند الارتطام.
     _diveToward(dt, px, speed, shake, stunTime) {
       const ang = Math.atan2((this.groundY - this.h) - this.y, px - this.x);
@@ -147,7 +177,7 @@ window.RN = window.RN || {};
           this._walkTo(px, 60 + ph * 22, dt);
           if (this.timer <= 0) {
             const opts = ph >= 3 ? ['lunge', 'web', 'ceiling'] : ph === 2 ? ['lunge', 'web'] : ['lunge'];
-            this.state = U.pick(opts);
+            this.state = this._pickAttack(opts);
             this.timer = this.state === 'lunge' ? 0.7 : this.state === 'web' ? 1.2 : 1.0;
             if (this.state === 'lunge') this._lungeDir = this.dir;
           }
@@ -209,7 +239,7 @@ window.RN = window.RN || {};
           this._walkTo(px + (px > this.x ? -140 : 140), 55, dt);
           if (this.timer <= 0) {
             const opts = ph >= 3 ? ['wave', 'whirl', 'summon', 'wave'] : ph === 2 ? ['wave', 'whirl', 'summon'] : ['wave', 'whirl'];
-            this.state = U.pick(opts);
+            this.state = this._pickAttack(opts);
             this.timer = this.state === 'wave' ? 0.8 : this.state === 'summon' ? 1.0 : 1.1;
           }
           break;
@@ -256,7 +286,7 @@ window.RN = window.RN || {};
           this.x += Math.sin(this.animT * 0.9) * 120 * dt;
           if (this.timer <= 0) {
             const opts = ph >= 3 ? ['breath', 'rain', 'sweep'] : ph === 2 ? ['breath', 'rain'] : ['breath', 'sweep'];
-            this.state = U.pick(opts);
+            this.state = this._pickAttack(opts);
             this.timer = this.state === 'breath' ? 1.0 : this.state === 'rain' ? 0.8 : 0.6;
           }
           break;
@@ -309,7 +339,7 @@ window.RN = window.RN || {};
           this.cooled = false;
           if (this.timer <= 0) {
             const opts = ph >= 3 ? ['lob', 'erupt', 'rocks'] : ph === 2 ? ['lob', 'erupt'] : ['lob', 'erupt'];
-            this.state = U.pick(opts);
+            this.state = this._pickAttack(opts);
             this.timer = this.state === 'lob' ? 0.7 : this.state === 'erupt' ? 1.1 : 0.9;
             if (this.state === 'erupt') {
               // تحذير مرئي لمواقع الانفجار
@@ -366,7 +396,7 @@ window.RN = window.RN || {};
             this.y = this.groundY - U.rand(200, 300);
             scene.particles.burst(this.x + this.w / 2, this.y + this.h / 2, 16, { color: '#8ad8ff', speed: 160, size: 3, life: 0.5, glow: true });
             const opts = ph >= 3 ? ['bolt', 'gust', 'dive', 'bolt'] : ph === 2 ? ['bolt', 'gust', 'dive'] : ['bolt', 'dive'];
-            this.state = U.pick(opts);
+            this.state = this._pickAttack(opts);
             this.timer = this.state === 'bolt' ? 1.0 : this.state === 'gust' ? 1.8 : 0.8;
             if (this.state === 'bolt') this._boltX = px;
           }
@@ -407,7 +437,7 @@ window.RN = window.RN || {};
           if (this.timer <= 0) {
             // 'crash' في كل الأطوار: هو المسار الوحيد إلى نافذة الضعف (stun)
             const opts = ph >= 3 ? ['meteors', 'burst', 'crash'] : ph === 2 ? ['meteors', 'burst', 'crash'] : ['meteors', 'crash'];
-            this.state = U.pick(opts);
+            this.state = this._pickAttack(opts);
             this.timer = this.state === 'meteors' ? 1.1 : this.state === 'burst' ? 0.9 : 0.7;
             if (this.state === 'meteors') {
               const n = 1 + ph;
@@ -469,7 +499,7 @@ window.RN = window.RN || {};
             const opts = ph >= 3 ? ['orbs', 'clones', 'barrage']
               : ph === 2 ? ['orbs', 'clones', 'barrage']
                 : ['orbs', 'barrage'];
-            this.state = U.pick(opts);
+            this.state = this._pickAttack(opts);
             this.timer = this.state === 'orbs' ? 0.9 : this.state === 'clones' ? 1.0 : 1.4;
           }
           break;
